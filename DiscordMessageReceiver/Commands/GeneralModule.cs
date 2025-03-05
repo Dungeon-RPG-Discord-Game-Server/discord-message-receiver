@@ -11,7 +11,6 @@ namespace DiscordMessageReceiver.Commands
         [Summary("Test service connection")]
         public async Task PingAsync()
         {
-            Console.WriteLine("Pong!");
             await ReplyAsync("Pong!");
         }
 

@@ -13,6 +13,10 @@ namespace DiscordMessageReceiver.Clients{
         public DiscordClientManager(){
             var clientCofig = new DiscordSocketConfig{
                 LogLevel = LogSeverity.Info,
+                GatewayIntents = GatewayIntents.Guilds | 
+                     GatewayIntents.GuildMessages | 
+                     GatewayIntents.DirectMessages | 
+                     GatewayIntents.MessageContent,
             };
 
             Client = new DiscordSocketClient(clientCofig);
@@ -24,6 +28,14 @@ namespace DiscordMessageReceiver.Clients{
 
         public async Task InitClientAsync(){
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+            foreach (var module in Commands.Modules)
+            {
+                Console.WriteLine($"Registered Module: {module.Name}");
+                foreach (var command in module.Commands)
+                {
+                    Console.WriteLine($"\tCommand: {command.Name}");
+                }
+            }
         }
 
         public async Task StartClientAsync(string token){
@@ -50,9 +62,13 @@ namespace DiscordMessageReceiver.Clients{
             if (!(messageParam is SocketUserMessage message)) return;
             if (message.Author.IsBot) return;
 
+            Console.WriteLine($"Received message: {message.Content}");
+
             int argPos = 0;
             // 예: '!' 접두사로 시작하는 경우에만 명령어로 인식
-            if (!message.HasCharPrefix('!', ref argPos)) return;
+            if (!message.HasCharPrefix('!', ref argPos)) {
+                Console.WriteLine("접두사가 감지되지 않았습니다.");
+            };
 
             var context = new SocketCommandContext(Client, message);
             var result = await Commands.ExecuteAsync(context, argPos, null);
