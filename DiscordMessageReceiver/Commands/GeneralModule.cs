@@ -21,5 +21,15 @@ namespace DiscordMessageReceiver.Commands
         {
             await ReplyAsync(text);
         }
+
+        [Command("game")]
+        [Summary("게임을 시작하기 위해 사용자에게 DM을 전송합니다.")]
+        public async Task StartGameAsync()
+        {
+            var dmChannel = await Context.User.CreateDMChannelAsync();
+            
+            await dmChannel.SendMessageAsync("게임을 시작합니다.");
+            await ReplyAsync("게임을 위한 DM을 전송 하였습니다.");
+        }
     }
 }

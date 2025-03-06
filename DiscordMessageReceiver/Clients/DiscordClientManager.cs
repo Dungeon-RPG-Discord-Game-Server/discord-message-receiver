@@ -28,14 +28,6 @@ namespace DiscordMessageReceiver.Clients{
 
         public async Task InitClientAsync(){
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
-            foreach (var module in Commands.Modules)
-            {
-                Console.WriteLine($"Registered Module: {module.Name}");
-                foreach (var command in module.Commands)
-                {
-                    Console.WriteLine($"\tCommand: {command.Name}");
-                }
-            }
         }
 
         public async Task StartClientAsync(string token){
