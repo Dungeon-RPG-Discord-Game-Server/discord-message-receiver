@@ -4,44 +4,48 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace DiscordMessageReceiver.Clients{
-    public class DiscordClientManager : IDiscordClientManager{
-        public DiscordSocketClient Client { get; private set;}
-        public CommandService Commands { get; private set; }
+namespace DiscordMessageReceiver.Clients
+{
+    public class DiscordClientManager : IDiscordClientManager
+    {
+        private readonly DiscordSocketClient _client;
+        private readonly CommandService _commands;
+        private readonly IServiceProvider _services;
 
-        public DiscordClientManager(){
-            var clientCofig = new DiscordSocketConfig{
-                LogLevel = LogSeverity.Info,
-                GatewayIntents = GatewayIntents.Guilds | 
-                     GatewayIntents.GuildMessages | 
-                     GatewayIntents.DirectMessages | 
-                     GatewayIntents.MessageContent,
-            };
+        public DiscordClientManager(
+            DiscordSocketClient client,
+            CommandService commands,
+            IServiceProvider services)
+        {
+            _client = client;
+            _commands = commands;
+            _services = services;
 
-            Client = new DiscordSocketClient(clientCofig);
-            Client.Log += LogAsync;
-            Client.MessageReceived += MessageReceivedAsync;
-
-            Commands = new CommandService();
+            _client.Log += LogAsync;
+            _client.MessageReceived += MessageReceivedAsync;
         }
 
-        public async Task InitClientAsync(){
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), null);
+        public async Task InitClientAsync()
+        {
+            await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
         }
 
-        public async Task StartClientAsync(string token){
+        public async Task StartClientAsync(string token)
+        {
             if (string.IsNullOrWhiteSpace(token))
                 throw new ArgumentException("Token cannot be null or empty.", nameof(token));
 
-            await Client.LoginAsync(TokenType.Bot, token);
-            await Client.StartAsync();
+            await _client.LoginAsync(TokenType.Bot, token);
+            await _client.StartAsync();
         }
-        
-        public async Task StopClientAsync(){
-            //TODO
-            await Client.StopAsync();
+
+        public async Task StopClientAsync()
+        {
+            await _client.StopAsync();
         }
+
         private async Task LogAsync(LogMessage logMessage)
         {
             Console.WriteLine(logMessage.ToString());
@@ -50,20 +54,20 @@ namespace DiscordMessageReceiver.Clients{
 
         private async Task MessageReceivedAsync(SocketMessage messageParam)
         {
-            // 봇 자신의 메시지나 다른 봇의 메시지는 무시합니다.
             if (!(messageParam is SocketUserMessage message)) return;
             if (message.Author.IsBot) return;
 
             Console.WriteLine($"Received message: {message.Content}");
 
             int argPos = 0;
-            // 예: '!' 접두사로 시작하는 경우에만 명령어로 인식
-            if (!message.HasCharPrefix('!', ref argPos)) {
+            if (!message.HasCharPrefix('!', ref argPos))
+            {
                 Console.WriteLine("접두사가 감지되지 않았습니다.");
-            };
+                return;
+            }
 
-            var context = new SocketCommandContext(Client, message);
-            var result = await Commands.ExecuteAsync(context, argPos, null);
+            var context = new SocketCommandContext(_client, message);
+            var result = await _commands.ExecuteAsync(context, argPos, _services);
             if (!result.IsSuccess)
             {
                 await context.Channel.SendMessageAsync(result.ErrorReason);
