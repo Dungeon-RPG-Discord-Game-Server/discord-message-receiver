@@ -17,6 +17,8 @@ builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton<CommandService>();
 builder.Services.AddSingleton<IDiscordClientManager, DiscordClientManager>();
 builder.Services.AddSingleton<ChoiceMessenger>();
+builder.Services.AddSingleton<APIRequestWrapper>();
+builder.Services.AddSingleton<HttpClient>();
 
 // 여기에 컨트롤러 추가도 가능
 builder.Services.AddControllers(); // <- REST API 만들고 싶으면 필요

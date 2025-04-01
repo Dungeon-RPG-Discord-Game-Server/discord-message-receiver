@@ -16,6 +16,7 @@ public class MessagesController : ControllerBase
     [HttpPost("send")]
     public async Task<IActionResult> SendMessageToUser([FromBody] MessagePayload payload)
     {
+        // Truoble: 유저 아이디가 존재하지만 찾아지지 않는경우
         // GetUser 함수가 아닌 GetUserAsync를 사용하여 비동기적으로 유저 정보를 가져옵니다.
         // GetUser 함수는 현재 그룹 내부에 있는 유저만 가져올 수 있습니다.
         // GetUserAsync는 느리지만 유저 아이디만을 이용해 유저를 가져올 수 있습니다.

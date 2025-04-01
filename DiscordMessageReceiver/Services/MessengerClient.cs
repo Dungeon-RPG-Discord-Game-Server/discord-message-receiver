@@ -9,11 +9,12 @@ using System.Threading.Tasks;
 namespace DiscordMessageReceiver.Services{
     public class ChoiceMessenger
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
-        private const string GameServiceBaseUrl = "https://yourgameservice.example.com/api/";
+        private const string GameServiceBaseUrl = "http://127.0.0.1:5048/api/";
+        private readonly APIRequestWrapper _apiWrapper;
         private readonly DiscordSocketClient _client;
-        public ChoiceMessenger(DiscordSocketClient client)
+        public ChoiceMessenger(DiscordSocketClient client, APIRequestWrapper apiWrapper)
         {
+            _apiWrapper = apiWrapper;
             _client = client;
             _client.ButtonExecuted += OnButtonExecutedAsync;
         }
@@ -128,6 +129,12 @@ namespace DiscordMessageReceiver.Services{
         {
             var user = interaction.User;
 
+            var payload = new
+            {
+                userId = user.Id.ToString(),
+                selectedOption = 1
+            };
+
             await interaction.UpdateAsync(msg =>
             {
                 switch (interaction.Data.CustomId)
@@ -136,14 +143,29 @@ namespace DiscordMessageReceiver.Services{
                     case "continue_game":
                         msg.Content = "✅ You have selected **Continue Game**.\nPreparing to load your progress...";
                         msg.Components = new ComponentBuilder().Build();
+                        _apiWrapper.PostAsync(GameServiceBaseUrl+"choice/choice-response", payload = new
+                        {
+                            userId = user.Id.ToString(),
+                            selectedOption = 1
+                        }).GetAwaiter().GetResult();
                         break;
                     case "new_game":        
                         msg.Content = "🆕 You have selected **New Game**.\nCreating a new adventure...";
                         msg.Components = new ComponentBuilder().Build();
+                        _apiWrapper.PostAsync(GameServiceBaseUrl+"choice/choice-response", payload = new
+                        {
+                            userId = user.Id.ToString(),
+                            selectedOption = 2
+                        }).GetAwaiter().GetResult();
                         break;
                     case "quit_game":
                         msg.Content = "🛑 You have selected **Quit Game**.\nHope to see you again soon!";
                         msg.Components = new ComponentBuilder().Build();
+                        _apiWrapper.PostAsync(GameServiceBaseUrl+"choice/choice-response", payload = new
+                        {
+                            userId = user.Id.ToString(),
+                            selectedOption = 3
+                        }).GetAwaiter().GetResult();
                         break;
                     
                     // Battle State
