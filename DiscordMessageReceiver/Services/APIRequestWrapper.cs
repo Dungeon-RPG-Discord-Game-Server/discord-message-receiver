@@ -28,7 +28,7 @@ namespace DiscordMessageReceiver.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ DELETE 요청 성공: {url}\n응답: {responseText}");
+                    Console.WriteLine($"✅ POST 요청 성공: {url}\n응답: {responseText}");
                     return responseText;
                 }
                 else
@@ -53,7 +53,7 @@ namespace DiscordMessageReceiver.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ DELETE 요청 성공: {url}\n응답: {responseText}");
+                    Console.WriteLine($"✅ GET 요청 성공: {url}\n응답: {responseText}");
                     return responseText;
                 }
                 else
@@ -81,7 +81,7 @@ namespace DiscordMessageReceiver.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ DELETE 요청 성공: {url}\n응답: {responseText}");
+                    Console.WriteLine($"✅ PUT 요청 성공: {url}\n응답: {responseText}");
                     return responseText;
                 }
                 else
