@@ -19,30 +19,31 @@ namespace DiscordMessageReceiver.Services.Messengers{
             _client.ButtonExecuted += OnButtonExecutedAsync;
         }
 
-        protected async Task<bool> CheckUserIsAliveAsync(ulong userId)
+        protected async Task<bool> CheckUserIsAOnlineAsync(ulong userId)
         {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + "game/alive/" + userId);
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/staus");
             if (response == null)
             {
                 Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
                 return false;
             }
 
-            var isAlive = JsonSerializer.Deserialize<bool>(response);
-            if (isAlive)
+            var isOnline = JsonSerializer.Deserialize<bool>(response);
+            if (isOnline)
             {
+                Console.WriteLine($"✅ 유저가 현재 진행중입니다: {userId}");
                 return true;
             }
             else
             {
-                Console.WriteLine($"❌ 현재 진행중인 유저 정보를 찾을 수 없습니다: {userId}");
+                Console.WriteLine($"❌ 유저가 현재 진행중이지 않습니다: {userId}");
                 return false;
             }
         }
 
         protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null)
         {
-            if (!await CheckUserIsAliveAsync(userId))
+            if (!await CheckUserIsAOnlineAsync(userId))
             {
                 return;
             }
