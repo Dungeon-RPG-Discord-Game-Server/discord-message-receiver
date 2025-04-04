@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 
 using DiscordMessageReceiver.Dtos;
+using DiscordMessageReceiver.Services;
 
 namespace DiscordMessageReceiver.Services.Messengers{
     public class BaseMessenger{
@@ -30,7 +31,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 return false;
             }
 
-            var status = JsonSerializer.Deserialize<PlayerStatusDto>(response);
+            var status = JsonSerializerWrapper.Deserialize<PlayerStatusDto>(response);
             if (status.Online)
             {
                 Console.WriteLine($"✅ 유저가 현재 게임을 진행중입니다: {userId}");

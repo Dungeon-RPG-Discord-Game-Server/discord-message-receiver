@@ -1,4 +1,4 @@
-namespace GameStateService.Dtos
+namespace DiscordMessageReceiver.Dtos
 {
     public class RegisterPlayerRequestDto
     {
