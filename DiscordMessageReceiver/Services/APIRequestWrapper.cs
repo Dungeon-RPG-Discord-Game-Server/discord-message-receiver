@@ -22,6 +22,7 @@ namespace DiscordMessageReceiver.Services
             {
                 var json = JsonSerializer.Serialize(payload);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+                Console.WriteLine($"✅ POST 요청 완료: {url}\ncontent: {json}");
 
                 var response = await _httpClient.PostAsync(url, content);
 

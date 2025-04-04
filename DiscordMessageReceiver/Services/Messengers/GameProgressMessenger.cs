@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using GameStateService.Dtos;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -11,6 +12,40 @@ namespace DiscordMessageReceiver.Services.Messengers{
     {
         public GameProgressMessenger(DiscordSocketClient client, APIRequestWrapper apiWrapper, string gameServiceBaseUrl) : base(client, apiWrapper, gameServiceBaseUrl)
         {
+        }
+
+        public async Task SendUserRegisterAsync(ulong userId)
+        {
+            var initialPlayerData = new RegisterPlayerRequestDto
+            {
+                UserId = userId.ToString(),
+                Name = userId.ToString(),
+            };
+
+            var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + "game/register", initialPlayerData);
+            if (response == null)
+            {
+                Console.WriteLine($"❌ register POST 요청에 실패하였습니다: {userId}");
+                return;
+            }
+            var status = JsonSerializer.Deserialize<RegisterPlayerResponseDto>(response);
+
+            if (status == null)
+            {
+                Console.WriteLine($"❌ register 응답을 파싱하는데 실패하였습니다: {userId}");
+                return;
+            }
+            
+            if (status.Registered)
+            {
+                Console.WriteLine($"✅ 유저가 등록되었습니다: {userId}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ 유저 등록에 실패했습니다: {userId}");
+            }
+
+            await SendMessageAsync(userId, status.Message);
         }
 
         /// <summary>

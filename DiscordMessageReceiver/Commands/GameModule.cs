@@ -26,11 +26,28 @@ namespace DiscordMessageReceiver.Commands
             _battleMessenger = battleMessenger;
         }
 
+        [Command("game")]
+        [Summary("게임을 시작하기 위해 사용자에게 DM을 전송합니다.")]
+        public async Task OpenDMAsync()
+        {
+            var dmChannel = await Context.User.CreateDMChannelAsync();
+            
+            await dmChannel.SendMessageAsync("게임을 시작합니다.");
+            await ReplyAsync("게임을 위한 DM을 전송 하였습니다. !register 명령어를 이용해 게임을 시작하세요.");
+        }
+
+        [Command("start")]
+        [Summary("게임을 시작합니다.")]
+        public async Task StartGameAsync()
+        {
+            
+        }
+
         [Command("register")]
         [Summary("게임 서비스에 유저를 등록합니다.")]
         public async Task RegisterAsync()
         {
-            
+            await _gameProgressMessenger.SendUserRegisterAsync(Context.User.Id);
         }
 
         [Command("choose")]

@@ -45,14 +45,14 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null)
         {
-            if (!await CheckUserIsAOnlineAsync(userId))
-            {
-                return;
-            }
+            // if (!await CheckUserIsAOnlineAsync(userId))
+            // {
+            //     return;
+            // }
             var user = await _client.Rest.GetUserAsync(userId);
             if (user == null)
             {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
+                Console.WriteLine($"SendMessageAsync: ❌ 유저를 찾을 수 없습니다: {userId}");
                 return;
             }
 
@@ -61,11 +61,11 @@ namespace DiscordMessageReceiver.Services.Messengers{
             if (component == null)
             {
                 await dm.SendMessageAsync(message);
-                Console.WriteLine($"✅ 메세지지를 {userId}에게 전송했습니다.");
+                Console.WriteLine($"SendMessageAsync: ✅ 메세지지를 {userId}에게 전송했습니다.");
             }else
             {
                 await dm.SendMessageAsync(message, components: component.Build());
-                Console.WriteLine($"✅ 선택지를 {userId}에게 전송했습니다.");
+                Console.WriteLine($"SendMessageAsync: ✅ 선택지를 {userId}에게 전송했습니다.");
             }
         }
 
