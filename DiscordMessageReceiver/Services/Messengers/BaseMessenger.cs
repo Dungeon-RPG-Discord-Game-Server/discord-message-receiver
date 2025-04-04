@@ -19,7 +19,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
             _gameServiceBaseUrl = gameServiceBaseUrl;
             _apiWrapper = apiWrapper;
             _client = client;
-            _client.ButtonExecuted += OnButtonExecutedAsync;
         }
 
         protected async Task<bool> CheckUserIsAOnlineAsync(ulong userId)
@@ -70,8 +69,9 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
         }
 
-        protected virtual Task OnButtonExecutedAsync(SocketMessageComponent interaction){
+        public virtual Task OnButtonExecutedAsync(SocketMessageComponent interaction){
             // 기본 동작 또는 비워도 됨
+            Console.WriteLine($"[BaseMessenger] Button clicked: {interaction.Data.CustomId} by {interaction.User.Username}");
             return Task.CompletedTask;
         }
     }

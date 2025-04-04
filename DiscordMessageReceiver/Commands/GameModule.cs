@@ -47,7 +47,7 @@ namespace DiscordMessageReceiver.Commands
         [Summary("게임 서비스에 유저를 등록합니다.")]
         public async Task RegisterAsync()
         {
-            await _gameProgressMessenger.SendUserRegisterAsync(Context.User.Id);
+            await _gameProgressMessenger.SendInitialWeaponChoiceButtonsAsync(Context.User.Id);
         }
 
         [Command("choose")]

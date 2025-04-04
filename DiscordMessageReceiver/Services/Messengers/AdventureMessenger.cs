@@ -17,9 +17,9 @@ namespace DiscordMessageReceiver.Services.Messengers{
         {
             var options = new[]
             {
-                new { Label = "🚪 Room 1", Id = "room_1" },
-                new { Label = "🚪 Room 2", Id = "room_2" },
-                new { Label = "🚪 Room 3", Id = "room_3" }
+                new { Label = "🚪 Room 1", Id = "adventure_room_1" },
+                new { Label = "🚪 Room 2", Id = "adventure_room_2" },
+                new { Label = "🚪 Room 3", Id = "adventure_room_3" }
             };
             
             var component = new ComponentBuilder();
@@ -35,19 +35,22 @@ namespace DiscordMessageReceiver.Services.Messengers{
         /// <summary>
         /// 버튼 클릭 시 호출되는 이벤트 핸들러
         /// </summary>
-        protected override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
+        public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
             var user = interaction.User;
+            var customId = interaction.Data.CustomId;
+
+            string content = customId switch
+            {
+                _ => $"❌ You have selected an unknown option: **{customId}**.\nPlease try again."
+            };
+
+            var builder = new ComponentBuilder(); // 버튼 제거
 
             await interaction.UpdateAsync(msg =>
             {
-                switch (interaction.Data.CustomId)
-                {
-                    default:
-                        msg.Content = $"❌ You have selected an unknown option: **{interaction.Data.CustomId}**.\nPlease try again.";
-                        msg.Components = new ComponentBuilder().Build();
-                        break;
-                }
+                msg.Content = content;
+                msg.Components = builder.Build();
             });
 
             // TODO: 선택 결과를 게임 서비스 API에 전달하는 로직 추가

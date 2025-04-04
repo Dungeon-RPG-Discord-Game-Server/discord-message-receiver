@@ -19,9 +19,9 @@ namespace DiscordMessageReceiver.Services.Messengers{
         public async Task SendBattleStateChoiceButtonsAsync(ulong userId)
         {
             await SendMessageAsync(userId, "⚔️ What would you like to do?", new ComponentBuilder()
-                .WithButton("⚔ Attack", "choice_attack", ButtonStyle.Primary)
-                .WithButton("🛡 Defend", "choice_defend", ButtonStyle.Success)
-                .WithButton("🏃 Run", "choice_run", ButtonStyle.Danger));
+                .WithButton("⚔ Attack", "battle_choice_attack", ButtonStyle.Primary)
+                .WithButton("🛡 Defend", "battle_choice_defend", ButtonStyle.Success)
+                .WithButton("🏃 Run", "battle_choice_run", ButtonStyle.Danger));
         }
 
         /// <summary>
@@ -30,53 +30,43 @@ namespace DiscordMessageReceiver.Services.Messengers{
         public async Task SendAttackChoiceButtonsAsync(ulong userId)
         {
             await SendMessageAsync(userId, "⚔️ What type of attack would you like to use?", new ComponentBuilder()
-                .WithButton("🗡 Normal Attack", "normal_attack", ButtonStyle.Primary)
-                .WithButton("✨ Skill Attack", "skill_attack", ButtonStyle.Success));
+                .WithButton("🗡 Normal Attack", "battle_normal_attack", ButtonStyle.Primary)
+                .WithButton("✨ Skill Attack", "battle_skill_attack", ButtonStyle.Success));
         }
 
         /// <summary>
         /// 버튼 클릭 시 호출되는 이벤트 핸들러
         /// </summary>
-        protected override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
+        public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
             var user = interaction.User;
+            var customId = interaction.Data.CustomId;
 
+            // 1. 메시지 수정 내용 준비
+            string content = customId switch
+            {
+                "choice_attack"   => "⚔ You have selected **Attack**.\nPreparing your weapon...",
+                "choice_defend"   => "🛡 You have selected **Defend**.\nBracing for impact...",
+                "choice_run"      => "🏃 You have selected **Run**.\nAttempting to escape...",
+                "normal_attack"   => "🗡 You have selected **Normal Attack**.\nReady to strike!",
+                "skill_attack"    => "✨ You have selected **Skill Attack**.\nUnleashing your special ability!",
+                _                 => $"❌ You have selected an unknown option: **{customId}**.\nPlease try again."
+            };
+
+            // 2. 버튼 제거하고 메시지 수정
             await interaction.UpdateAsync(msg =>
             {
-                switch (interaction.Data.CustomId)
-                {
-                    // Battle State
-                    case "choice_attack":
-                        msg.Content = "⚔ You have selected **Attack**.\nPreparing your weapon...";
-                        msg.Components = new ComponentBuilder().Build();
-                        SendAttackChoiceButtonsAsync(user.Id).GetAwaiter().GetResult();
-                        break;
-                    case "choice_defend":
-                        msg.Content = "🛡 You have selected **Defend**.\nBracing for impact...";
-                        msg.Components = new ComponentBuilder().Build();
-                        break;
-                    case "choice_run":
-                        msg.Content = "🏃 You have selected **Run**.\nAttempting to escape...";
-                        msg.Components = new ComponentBuilder().Build();
-                        break;
-                    
-                    // Attack Type
-                    case "normal_attack":
-                        msg.Content = "🗡 You have selected **Normal Attack**.\nReady to strike!";
-                        msg.Components = new ComponentBuilder().Build();
-                        break;
-                    case "skill_attack":
-                        msg.Content = "✨ You have selected **Skill Attack**.\nUnleashing your special ability!";
-                        msg.Components = new ComponentBuilder().Build();
-                        break;
-                    default:
-                        msg.Content = $"❌ You have selected an unknown option: **{interaction.Data.CustomId}**.\nPlease try again.";
-                        msg.Components = new ComponentBuilder().Build();
-                        break;
-                }
+                msg.Content = content;
+                msg.Components = new ComponentBuilder().Build();
             });
 
-            // TODO: 선택 결과를 게임 서비스 API에 전달하는 로직 추가
+            // 3. 후속 비동기 로직 (버튼 추가 등)
+            if (customId == "battle_choice_attack")
+            {
+                await SendAttackChoiceButtonsAsync(user.Id);  // ⚠️ 이건 반드시 UpdateAsync 외부에서 호출해야 함
+            }
+
+            // TODO: 추가로 게임 상태 업데이트 등 처리 가능
         }
     }
 }

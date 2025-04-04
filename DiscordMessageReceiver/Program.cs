@@ -58,5 +58,25 @@ var clientManager = app.Services.GetRequiredService<IDiscordClientManager>();
 await clientManager.InitClientAsync();
 await clientManager.StartClientAsync(token);
 
+var client = app.Services.GetRequiredService<DiscordSocketClient>();
+var battle = app.Services.GetRequiredService<BattleMessenger>();
+var adventure = app.Services.GetRequiredService<AdventureMessenger>();
+var progress = app.Services.GetRequiredService<GameProgressMessenger>();
+
+// Troubleshooting: 버튼 클릭 이벤트 핸들러 등록시에 모든 메신저 클래스에서 핸들러를 등록하면 하나의 버튼에 모든 핸들러의 처리가 실행되는 문제
+client.ButtonExecuted += async interaction =>
+{
+    var id = interaction.Data.CustomId;
+
+    if (id.StartsWith("battle_"))
+        await battle.OnButtonExecutedAsync(interaction);
+    else if (id.StartsWith("adventure_"))
+        await adventure.OnButtonExecutedAsync(interaction);
+    else if (id.StartsWith("game_"))
+        await progress.OnButtonExecutedAsync(interaction);
+    else
+        Console.WriteLine($"[❗경고] 처리되지 않은 CustomId: {id}");
+};
+
 // 실행
 await app.RunAsync();
