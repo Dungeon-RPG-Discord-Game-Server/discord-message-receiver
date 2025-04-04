@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using DiscordMessageReceiver.Dtos;
+
 namespace DiscordMessageReceiver.Services.Messengers{
     public class BaseMessenger{
         protected readonly string _gameServiceBaseUrl;
@@ -21,22 +23,22 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         protected async Task<bool> CheckUserIsAOnlineAsync(ulong userId)
         {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/staus");
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/status");
             if (response == null)
             {
                 Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
                 return false;
             }
 
-            var isOnline = JsonSerializer.Deserialize<bool>(response);
-            if (isOnline)
+            var status = JsonSerializer.Deserialize<PlayerStatusDto>(response);
+            if (status.Online)
             {
-                Console.WriteLine($"✅ 유저가 현재 진행중입니다: {userId}");
+                Console.WriteLine($"✅ 유저가 현재 게임을 진행중입니다: {userId}");
                 return true;
             }
             else
             {
-                Console.WriteLine($"❌ 유저가 현재 진행중이지 않습니다: {userId}");
+                Console.WriteLine($"❌ 유저가 현재 게임을 진행중이지 않습니다: {userId}");
                 return false;
             }
         }

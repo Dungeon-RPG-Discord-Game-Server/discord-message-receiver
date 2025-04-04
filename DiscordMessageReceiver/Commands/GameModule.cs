@@ -26,6 +26,13 @@ namespace DiscordMessageReceiver.Commands
             _battleMessenger = battleMessenger;
         }
 
+        [Command("register")]
+        [Summary("게임 서비스에 유저를 등록합니다.")]
+        public async Task RegisterAsync()
+        {
+            
+        }
+
         [Command("choose")]
         [Summary("게임 서비스로부터 선택지를 받아 사용자에게 전송 후, 선택 결과를 게임 서비스에 전달합니다.")]
         public async Task ChooseAsync()
