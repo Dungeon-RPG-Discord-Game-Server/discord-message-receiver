@@ -55,6 +55,27 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("🪄 MagicWand", "game_wand", ButtonStyle.Success));
         }
 
+        public async Task EnterDungeonAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 던전을 찾을 수 없습니다: {userId}");
+                return;
+            }
+
+            var dungeon = response;
+            if (dungeon == null)
+            {
+                Console.WriteLine($"❌ 던전 정보를 가져오는 데 실패했습니다: {userId}");
+                return;
+            }
+
+            await SendMessageAsync(userId, dungeon);
+            await SendMessageAsync(userId, await GetUserSummaryAsync(userId));
+            await SendMessageAsync(userId, await GetUserMapAsync(userId));
+        }
+
         public async Task<string> GetUserSummaryAsync(ulong userId)
         {
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/summary");
@@ -133,12 +154,17 @@ namespace DiscordMessageReceiver.Services.Messengers{
             {
                 case "game_sword":
                     await UserRegisterAsync(user.Id, 0);
+                    await EnterDungeonAsync(user.Id);
                     break;
                 case "game_wand":
                     await UserRegisterAsync(user.Id, 1);
+                    await EnterDungeonAsync(user.Id);
                     break;
                 case "game_continue_game":
+                    //Player progress를 불러오는 API 호출
                 case "game_new_game":
+                    await SendUserRegisterAsync(user.Id);
+                    break;
                 case "game_quit_game":
                     // TODO: 필요 시 처리 추가
                     break;

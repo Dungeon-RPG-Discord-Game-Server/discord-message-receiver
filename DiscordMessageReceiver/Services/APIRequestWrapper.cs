@@ -16,11 +16,11 @@ namespace DiscordMessageReceiver.Services
             _httpClient = httpClient;
         }
 
-        public async Task<string?> PostAsync<T>(string url, T payload)
+        public async Task<string?> PostAsync<T>(string url, T? payload)
         {
             try
             {
-                var json = JsonSerializer.Serialize(payload);
+                var json = payload != null ? JsonSerializer.Serialize(payload) : "null";
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
                 Console.WriteLine($"✅ POST 요청 완료: {url}\ncontent: {json}");
 

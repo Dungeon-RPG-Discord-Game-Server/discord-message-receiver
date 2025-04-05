@@ -61,7 +61,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             if (component == null)
             {
                 await dm.SendMessageAsync(message);
-                Console.WriteLine($"SendMessageAsync: ✅ 메세지지를 {userId}에게 전송했습니다.");
+                Console.WriteLine($"SendMessageAsync: ✅ 메세지를 {userId}에게 전송했습니다.");
             }else
             {
                 await dm.SendMessageAsync(message, components: component.Build());

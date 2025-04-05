@@ -89,13 +89,6 @@ namespace DiscordMessageReceiver.Commands
             await _gameProgressMessenger.SendMainStateChoiceButtonsAsync(Context.User.Id);
         }
 
-        [Command("room")]
-        [Summary("게임 서비스로부터 선택지를 받아 사용자에게 전송 후, 선택 결과를 게임 서비스에 전달합니다.")]
-        public async Task ChooseRoomAsync()
-        {
-            await _adventureMessenger.SendExplorationStateChoiceButtonsAsync(Context.User.Id);
-        }
-
         [Command("battle")]
         [Summary("게임 서비스로부터 선택지를 받아 사용자에게 전송 후, 선택 결과를 게임 서비스에 전달합니다.")]
         public async Task ChooseBattleAsync()

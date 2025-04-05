@@ -13,20 +13,38 @@ namespace DiscordMessageReceiver.Services.Messengers{
         {
         }
 
-        public async Task SendExplorationStateChoiceButtonsAsync(ulong userId)
+        public async Task SendRoomChoiceButtonsAsync(ulong userId)
         {
-            var options = new[]
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/neighbors");
+            var directions = JsonSerializerWrapper.Deserialize<string[]>(response);
+            if (directions == null || directions.Length == 0)
             {
-                new { Label = "🚪 Room 1", Id = "adventure_room_1" },
-                new { Label = "🚪 Room 2", Id = "adventure_room_2" },
-                new { Label = "🚪 Room 3", Id = "adventure_room_3" }
-            };
+                Console.WriteLine($"❌ 유저의 방 정보를 가져올 수 없습니다: {userId}");
+                return;
+            }
             
             var component = new ComponentBuilder();
 
-            foreach (var opt in options)
+            foreach (var direction in directions)
             {
-                component.WithButton(opt.Label, opt.Id, ButtonStyle.Primary);
+                string label = string.Empty;
+                string id = "adventure_" + direction;
+                switch (direction)
+                {
+                    case "up":
+                        label = "⬆️ Up";
+                        break;
+                    case "down":
+                        label = "⬇️ Down";
+                        break;
+                    case "left":
+                        label = "⬅️ Left";
+                        break;
+                    case "right":
+                        label = "➡️ Right";
+                        break;
+                }
+                component.WithButton(label, id, ButtonStyle.Primary);
             }
 
             await SendMessageAsync(userId, "🏰 **Choose a room to enter:**\nSelect one of the available rooms below.", component);
@@ -42,7 +60,11 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
             string content = customId switch
             {
-                _ => $"❌ You have selected an unknown option: **{customId}**.\nPlease try again."
+                "adventure_up"    => "⬆️ You chose to move **up**. Heading north...",
+                "adventure_down"  => "⬇️ You chose to move **down**. Descending...",
+                "adventure_left"  => "⬅️ You chose to move **left**. Moving west...",
+                "adventure_right" => "➡️ You chose to move **right**. Moving east...",
+                _       => "❓ Unknown direction. Please try again."
             };
 
             var builder = new ComponentBuilder(); // 버튼 제거
@@ -54,6 +76,17 @@ namespace DiscordMessageReceiver.Services.Messengers{
             });
 
             // TODO: 선택 결과를 게임 서비스 API에 전달하는 로직 추가
+            switch (interaction.Data.CustomId)
+            {
+
+                case "adventure_up":
+                case "adventure_down":
+                case "adventure_left":
+                case "adventure_right":
+                default:
+
+                    break;
+            }
         }
     }
 }
