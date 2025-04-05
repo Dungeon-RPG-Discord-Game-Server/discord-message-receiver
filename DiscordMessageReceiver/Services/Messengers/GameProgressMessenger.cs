@@ -13,8 +13,12 @@ using DiscordMessageReceiver.Dtos;
 namespace DiscordMessageReceiver.Services.Messengers{
     public class GameProgressMessenger : BaseMessenger
     {
-        public GameProgressMessenger(DiscordSocketClient client, APIRequestWrapper apiWrapper, string gameServiceBaseUrl) : base(client, apiWrapper, gameServiceBaseUrl)
+        private readonly AdventureMessenger _adventureMessenger;
+        private readonly BattleMessenger _battleMessenger;
+        public GameProgressMessenger(DiscordSocketClient client, APIRequestWrapper apiWrapper, AdventureMessenger adventureMessenger, BattleMessenger battleMessenger, string gameServiceBaseUrl) : base(client, apiWrapper, gameServiceBaseUrl)
         {
+            _adventureMessenger = adventureMessenger;
+            _battleMessenger = battleMessenger;
         }
 
         public async Task UserRegisterAsync(ulong userId, int weaponType)
@@ -74,44 +78,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             await SendMessageAsync(userId, dungeon);
             await SendMessageAsync(userId, await GetUserSummaryAsync(userId));
             await SendMessageAsync(userId, await GetUserMapAsync(userId));
-        }
-
-        public async Task<string> GetUserSummaryAsync(ulong userId)
-        {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/summary");
-            if (response == null)
-            {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
-                return string.Empty;
-            }
-
-            var summary = response;
-            if (summary == null)
-            {
-                Console.WriteLine($"❌ 유저 요약 정보를 가져오는 데 실패했습니다: {userId}");
-                return string.Empty;
-            }
-
-            return summary;
-        }
-
-        public async Task<string> GetUserMapAsync(ulong userId)
-        {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map");
-            if (response == null)
-            {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
-                return string.Empty;
-            }
-
-            var map = response;
-            if (map == null)
-            {
-                Console.WriteLine($"❌ 유저 맵 정보를 가져오는 데 실패했습니다: {userId}");
-                return string.Empty;
-            }
-
-            return map;
+            await _adventureMessenger.SendRoomChoiceButtonsAsync(userId);
         }
 
         /// <summary>

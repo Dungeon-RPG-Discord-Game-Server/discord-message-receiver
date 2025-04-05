@@ -43,6 +43,44 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
         }
 
+        public async Task<string> GetUserSummaryAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/summary");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
+                return string.Empty;
+            }
+
+            var summary = response;
+            if (summary == null)
+            {
+                Console.WriteLine($"❌ 유저 요약 정보를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+
+            return summary;
+        }
+
+        public async Task<string> GetUserMapAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
+                return string.Empty;
+            }
+
+            var map = response;
+            if (map == null)
+            {
+                Console.WriteLine($"❌ 유저 맵 정보를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+
+            return map;
+        }
+
         protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null)
         {
             // if (!await CheckUserIsAOnlineAsync(userId))

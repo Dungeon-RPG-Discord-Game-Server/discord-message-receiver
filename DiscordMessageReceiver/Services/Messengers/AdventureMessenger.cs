@@ -6,6 +6,8 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using DiscordMessageReceiver.Dtos;
+
 namespace DiscordMessageReceiver.Services.Messengers{
     public class AdventureMessenger : BaseMessenger
     {
@@ -50,6 +52,19 @@ namespace DiscordMessageReceiver.Services.Messengers{
             await SendMessageAsync(userId, "🏰 **Choose a room to enter:**\nSelect one of the available rooms below.", component);
         }
 
+        public async Task MovePlayerAsync(MovePlayerRequestDto request)
+        {
+
+            var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"game/{request.UserId}/move", request);
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저의 이동 요청에 실패하였습니다: {request.UserId}");
+                return;
+            }
+
+            Console.WriteLine($"✅ 유저의 이동 요청이 성공하였습니다: {request.UserId}");
+        }
+
         /// <summary>
         /// 버튼 클릭 시 호출되는 이벤트 핸들러
         /// </summary>
@@ -83,6 +98,16 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 case "adventure_down":
                 case "adventure_left":
                 case "adventure_right":
+                    string direction = interaction.Data.CustomId.Replace("adventure_", "");
+                    var moveRequest = new MovePlayerRequestDto
+                    {
+                        UserId = user.Id.ToString(),
+                        Direction = direction
+                    };
+                    await MovePlayerAsync(moveRequest);
+                    await SendMessageAsync(user.Id, await GetUserMapAsync(user.Id));
+                    await SendRoomChoiceButtonsAsync(user.Id);
+                    break;
                 default:
 
                     break;

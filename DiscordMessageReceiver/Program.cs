@@ -22,13 +22,6 @@ builder.Services.AddSingleton<IDiscordClientManager, DiscordClientManager>();
 builder.Services.AddSingleton<APIRequestWrapper>();
 builder.Services.AddSingleton<HttpClient>();
 
-builder.Services.AddSingleton<GameProgressMessenger>(provider=>
-{
-    var client = provider.GetRequiredService<DiscordSocketClient>();
-    var apiWrapper = provider.GetRequiredService<APIRequestWrapper>();
-    var url = gameServiceBaseUrl;
-    return new GameProgressMessenger(client, apiWrapper, url);
-});
 builder.Services.AddSingleton<BattleMessenger>(provider=>
 {
     var client = provider.GetRequiredService<DiscordSocketClient>();
@@ -42,6 +35,16 @@ builder.Services.AddSingleton<AdventureMessenger>(provider=>
     var apiWrapper = provider.GetRequiredService<APIRequestWrapper>();
     var url = gameServiceBaseUrl;
     return new AdventureMessenger(client, apiWrapper, url);
+});
+
+builder.Services.AddSingleton<GameProgressMessenger>(provider=>
+{
+    var client = provider.GetRequiredService<DiscordSocketClient>();
+    var apiWrapper = provider.GetRequiredService<APIRequestWrapper>();
+    var adventureMessenger = provider.GetRequiredService<AdventureMessenger>();
+    var battleMessenger = provider.GetRequiredService<BattleMessenger>();
+    var url = gameServiceBaseUrl;
+    return new GameProgressMessenger(client, apiWrapper, adventureMessenger, battleMessenger, url);
 });
 
 // 여기에 컨트롤러 추가도 가능
