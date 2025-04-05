@@ -55,6 +55,25 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("🪄 MagicWand", "game_wand", ButtonStyle.Success));
         }
 
+        public async Task<string> GetUserSummaryAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/summary");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
+                return string.Empty;
+            }
+
+            var summary = response;
+            if (summary == null)
+            {
+                Console.WriteLine($"❌ 유저 요약 정보를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+
+            return summary;
+        }
+
         /// <summary>
         /// 유저에게 버튼이 포함된 메인 메뉴 선택지 메시지를 DM으로 보냅니다.
         /// </summary>

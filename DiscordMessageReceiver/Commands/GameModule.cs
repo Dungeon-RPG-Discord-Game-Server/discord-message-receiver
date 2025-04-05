@@ -43,6 +43,22 @@ namespace DiscordMessageReceiver.Commands
             
         }
 
+        [Command("summary")]
+        [Summary("게임을 시작합니다.")]
+        public async Task UserSummaryAsync()
+        {
+            string? response = await _gameProgressMessenger.GetUserSummaryAsync(Context.User.Id);
+            if (response!=null)
+            {
+                await ReplyAsync(response);
+                return;
+            }else
+            {
+                await ReplyAsync("게임 서비스와 연결할 수 없습니다.");
+                return;
+            }
+        }
+
         [Command("register")]
         [Summary("게임 서비스에 유저를 등록합니다.")]
         public async Task RegisterAsync()
