@@ -47,7 +47,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             await SendMessageAsync(userId, status.Message);
         }
 
-        public async Task SendInitialWeaponChoiceButtonsAsync(ulong userId)
+        public async Task SendUserRegisterAsync(ulong userId)
         {
             //TODO: 유저가 이미 등록되어 있는지 확인하는 로직 추가
             await SendMessageAsync(userId, "⚔️ Choose your weapon:", new ComponentBuilder()
@@ -72,6 +72,25 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
 
             return summary;
+        }
+
+        public async Task<string> GetUserMapAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
+                return string.Empty;
+            }
+
+            var map = response;
+            if (map == null)
+            {
+                Console.WriteLine($"❌ 유저 맵 정보를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+
+            return map;
         }
 
         /// <summary>

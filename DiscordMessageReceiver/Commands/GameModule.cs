@@ -59,11 +59,27 @@ namespace DiscordMessageReceiver.Commands
             }
         }
 
+        [Command("map")]
+        [Summary("유저의 맵 정보를 요청합니다.")]
+        public async Task UserMapAsync()
+        {
+            string? response = await _gameProgressMessenger.GetUserMapAsync(Context.User.Id);
+            if (response!=null)
+            {
+                await ReplyAsync(response);
+                return;
+            }else
+            {
+                await ReplyAsync("게임 서비스와 연결할 수 없습니다.");
+                return;
+            }
+        }
+
         [Command("register")]
         [Summary("게임 서비스에 유저를 등록합니다.")]
         public async Task RegisterAsync()
         {
-            await _gameProgressMessenger.SendInitialWeaponChoiceButtonsAsync(Context.User.Id);
+            await _gameProgressMessenger.SendUserRegisterAsync(Context.User.Id);
         }
 
         [Command("choose")]
