@@ -15,43 +15,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
         {
         }
 
-        public async Task SendRoomChoiceButtonsAsync(ulong userId)
-        {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/neighbors");
-            var directions = JsonSerializerWrapper.Deserialize<string[]>(response);
-            if (directions == null || directions.Length == 0)
-            {
-                Console.WriteLine($"❌ 유저의 방 정보를 가져올 수 없습니다: {userId}");
-                return;
-            }
-            
-            var component = new ComponentBuilder();
-
-            foreach (var direction in directions)
-            {
-                string label = string.Empty;
-                string id = "adventure_" + direction;
-                switch (direction)
-                {
-                    case "up":
-                        label = "⬆️ Up";
-                        break;
-                    case "down":
-                        label = "⬇️ Down";
-                        break;
-                    case "left":
-                        label = "⬅️ Left";
-                        break;
-                    case "right":
-                        label = "➡️ Right";
-                        break;
-                }
-                component.WithButton(label, id, ButtonStyle.Primary);
-            }
-
-            await SendMessageAsync(userId, "🏰 **Choose a room to enter:**\nSelect one of the available rooms below.", component);
-        }
-
         public async Task MovePlayerAsync(MovePlayerRequestDto request)
         {
 
@@ -105,11 +68,26 @@ namespace DiscordMessageReceiver.Services.Messengers{
                         Direction = direction
                     };
                     await MovePlayerAsync(moveRequest);
-                    await SendMessageAsync(user.Id, await GetUserMapAsync(user.Id));
-                    await SendRoomChoiceButtonsAsync(user.Id);
                     break;
                 default:
+                    break;
+            }
 
+            //만약 게임 스테이트가 배틀이면 배틀 실행
+            var gameState = await GetPlayerGameStateAsync(user.Id);
+            switch (gameState)
+            {
+                case "MainMenuState":
+                    break;
+                case "ExplorationState":
+                    await SendMessageAsync(user.Id, await GetUserMapAsync(user.Id));
+                    await ContiueExplorationAsync(user.Id);
+                    break;
+                case "BattleState":
+                    await SendMessageAsync(user.Id, "⚔️ You are in battle mode.");
+                    break;
+                default:
+                    await SendMessageAsync(user.Id, "❌ Unknown game state.");
                     break;
             }
         }

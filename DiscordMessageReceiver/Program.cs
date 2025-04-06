@@ -44,7 +44,7 @@ builder.Services.AddSingleton<GameProgressMessenger>(provider=>
     var adventureMessenger = provider.GetRequiredService<AdventureMessenger>();
     var battleMessenger = provider.GetRequiredService<BattleMessenger>();
     var url = gameServiceBaseUrl;
-    return new GameProgressMessenger(client, apiWrapper, adventureMessenger, battleMessenger, url);
+    return new GameProgressMessenger(client, apiWrapper, url);
 });
 
 // 여기에 컨트롤러 추가도 가능

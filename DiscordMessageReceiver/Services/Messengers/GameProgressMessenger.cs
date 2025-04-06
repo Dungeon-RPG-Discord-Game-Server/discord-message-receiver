@@ -13,12 +13,8 @@ using DiscordMessageReceiver.Dtos;
 namespace DiscordMessageReceiver.Services.Messengers{
     public class GameProgressMessenger : BaseMessenger
     {
-        private readonly AdventureMessenger _adventureMessenger;
-        private readonly BattleMessenger _battleMessenger;
-        public GameProgressMessenger(DiscordSocketClient client, APIRequestWrapper apiWrapper, AdventureMessenger adventureMessenger, BattleMessenger battleMessenger, string gameServiceBaseUrl) : base(client, apiWrapper, gameServiceBaseUrl)
+        public GameProgressMessenger(DiscordSocketClient client, APIRequestWrapper apiWrapper, string gameServiceBaseUrl) : base(client, apiWrapper, gameServiceBaseUrl)
         {
-            _adventureMessenger = adventureMessenger;
-            _battleMessenger = battleMessenger;
         }
 
         public async Task UserRegisterAsync(ulong userId, int weaponType)
@@ -59,6 +55,32 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("🪄 MagicWand", "game_wand", ButtonStyle.Success));
         }
 
+        public async Task StartExplorationAsync(ulong userId)
+        {
+            string message = $@"
+            🏰 You are entering the dungeon!
+
+            The gate creaks open...  
+            Darkness and danger await beyond.
+
+            🗺️ Your adventure begins now!
+            ".Trim();
+            await SendMessageAsync(userId, message);
+            await ContiueExplorationAsync(userId);
+        }
+
+        public async Task StartBattleAsync(ulong userId)
+        {
+            string message = $@"
+            ⚠️ A wild 🐉 monster appears!
+
+            It blocks your path with a menacing glare...  
+            Prepare for battle!
+            ".Trim();
+            await SendMessageAsync(userId, message);
+            await ContiueBattleAsync(userId);
+        }
+
         public async Task EnterDungeonAsync(ulong userId)
         {
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
@@ -78,7 +100,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             await SendMessageAsync(userId, dungeon);
             await SendMessageAsync(userId, await GetUserSummaryAsync(userId));
             await SendMessageAsync(userId, await GetUserMapAsync(userId));
-            await _adventureMessenger.SendRoomChoiceButtonsAsync(userId);
+            await StartExplorationAsync(userId);
         }
 
         /// <summary>

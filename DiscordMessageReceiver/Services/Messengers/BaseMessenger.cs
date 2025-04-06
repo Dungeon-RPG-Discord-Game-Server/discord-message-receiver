@@ -107,6 +107,70 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
         }
 
+        public async Task<string> GetPlayerGameStateAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/state");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
+                return string.Empty;
+            }
+            var gameState = response;
+            if (gameState == null)
+            {
+                Console.WriteLine($"❌ 유저 게임 상태 정보를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+            return gameState;
+        }
+
+        public async Task ContiueExplorationAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/neighbors");
+            var directions = JsonSerializerWrapper.Deserialize<string[]>(response);
+            if (directions == null || directions.Length == 0)
+            {
+                Console.WriteLine($"❌ 유저의 방 정보를 가져올 수 없습니다: {userId}");
+                return;
+            }
+            
+            var component = new ComponentBuilder();
+
+            foreach (var direction in directions)
+            {
+                string label = string.Empty;
+                string id = "adventure_" + direction;
+                switch (direction)
+                {
+                    case "up":
+                        label = "⬆️ Up";
+                        break;
+                    case "down":
+                        label = "⬇️ Down";
+                        break;
+                    case "left":
+                        label = "⬅️ Left";
+                        break;
+                    case "right":
+                        label = "➡️ Right";
+                        break;
+                }
+                component.WithButton(label, id, ButtonStyle.Primary);
+            }
+
+            await SendMessageAsync(userId, "🏰 **Choose a room to enter:**\nSelect one of the available rooms below.", component);
+        }
+
+        /// <summary>
+        /// 유저에게 버튼이 포함된 배틀 상태 선택지 메시지를 DM으로 보냅니다.
+        /// </summary>
+        public async Task ContiueBattleAsync(ulong userId)
+        {
+            await SendMessageAsync(userId, "⚔️ What would you like to do?", new ComponentBuilder()
+                .WithButton("⚔ Attack", "battle_choice_attack", ButtonStyle.Primary)
+                .WithButton("🏃 Run", "battle_choice_run", ButtonStyle.Danger));
+        }
+
         public virtual Task OnButtonExecutedAsync(SocketMessageComponent interaction){
             // 기본 동작 또는 비워도 됨
             Console.WriteLine($"[BaseMessenger] Button clicked: {interaction.Data.CustomId} by {interaction.User.Username}");

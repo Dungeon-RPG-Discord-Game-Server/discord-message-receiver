@@ -14,17 +14,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
         }
 
         /// <summary>
-        /// 유저에게 버튼이 포함된 배틀 상태 선택지 메시지를 DM으로 보냅니다.
-        /// </summary>
-        public async Task SendBattleStateChoiceButtonsAsync(ulong userId)
-        {
-            await SendMessageAsync(userId, "⚔️ What would you like to do?", new ComponentBuilder()
-                .WithButton("⚔ Attack", "battle_choice_attack", ButtonStyle.Primary)
-                .WithButton("🛡 Defend", "battle_choice_defend", ButtonStyle.Success)
-                .WithButton("🏃 Run", "battle_choice_run", ButtonStyle.Danger));
-        }
-
-        /// <summary>
         /// 유저에게 버튼이 포함된 공격 타입입 선택지 메시지를 DM으로 보냅니다.
         /// </summary>
         public async Task SendAttackChoiceButtonsAsync(ulong userId)
