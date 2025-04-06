@@ -13,6 +13,25 @@ namespace DiscordMessageReceiver.Services.Messengers{
         {
         }
 
+        public async Task<string> AttackAsync(ulong userId, bool skillUsed)
+        {
+            var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"battle/{userId}/attack?skillUsed={skillUsed.ToString().ToLower()}");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저의 공격 요청에 실패하였습니다: {userId}");
+                return string.Empty;
+            }
+
+            var result = response;
+            if (result == null)
+            {
+                Console.WriteLine($"❌ 유저의 공격 결과를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// 유저에게 버튼이 포함된 공격 타입입 선택지 메시지를 DM으로 보냅니다.
         /// </summary>
@@ -34,11 +53,10 @@ namespace DiscordMessageReceiver.Services.Messengers{
             // 1. 메시지 수정 내용 준비
             string content = customId switch
             {
-                "choice_attack"   => "⚔ You have selected **Attack**.\nPreparing your weapon...",
-                "choice_defend"   => "🛡 You have selected **Defend**.\nBracing for impact...",
-                "choice_run"      => "🏃 You have selected **Run**.\nAttempting to escape...",
-                "normal_attack"   => "🗡 You have selected **Normal Attack**.\nReady to strike!",
-                "skill_attack"    => "✨ You have selected **Skill Attack**.\nUnleashing your special ability!",
+                "battle_attack"   => "⚔ You have selected **Attack**.\nPreparing your weapon...",
+                "battle_run"      => "🏃 You have selected **Run**.\nAttempting to escape...",
+                "battle_normal_attack"   => "🗡 You have selected **Normal Attack**.\nReady to strike!",
+                "battle_skill_attack"    => "✨ You have selected **Skill Attack**.\nUnleashing your special ability!",
                 _                 => $"❌ You have selected an unknown option: **{customId}**.\nPlease try again."
             };
 
@@ -49,13 +67,49 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 msg.Components = new ComponentBuilder().Build();
             });
 
-            // 3. 후속 비동기 로직 (버튼 추가 등)
-            if (customId == "battle_choice_attack")
+            switch (interaction.Data.CustomId)
             {
-                await SendAttackChoiceButtonsAsync(user.Id);  // ⚠️ 이건 반드시 UpdateAsync 외부에서 호출해야 함
+
+                case "battle_attack":
+                    await SendAttackChoiceButtonsAsync(user.Id);
+                    break;
+                case "battle_run":  
+                    await SendMessageAsync(user.Id, "🏃 You are attempting to escape the battle.");
+                    break;
+                case "battle_normal_attack":    
+                    await SendMessageAsync(user.Id, "🗡 You are using a normal attack.");
+                    string result = await AttackAsync(user.Id, false);
+                    await SendMessageAsync(user.Id, result);
+                    break;
+                case "battle_skill_attack":
+                    await SendMessageAsync(user.Id, "✨ You are using a skill attack.");
+                    string skillResult = await AttackAsync(user.Id, true);
+                    await SendMessageAsync(user.Id, skillResult);
+                    break;
+                default:
+                    await SendMessageAsync(user.Id, "❌ Unknown action.");
+                    break;
             }
 
-            // TODO: 추가로 게임 상태 업데이트 등 처리 가능
+            //만약 게임 스테이트가 배틀이면 배틀 실행
+            if (interaction.Data.CustomId != "battle_attack")
+            {
+                var gameState = await GetPlayerGameStateAsync(user.Id);
+                switch (gameState)
+                {
+                    case "MainMenuState":
+                        break;
+                    case "ExplorationState":
+                        await ContiueExplorationAsync(user.Id);
+                        break;
+                    case "BattleState":
+                        await ContiueBattleAsync(user.Id);
+                        break;
+                    default:
+                        await SendMessageAsync(user.Id, "❌ Unknown game state.");
+                        break;
+                }
+            }
         }
     }
 }

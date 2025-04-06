@@ -55,32 +55,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("🪄 MagicWand", "game_wand", ButtonStyle.Success));
         }
 
-        public async Task StartExplorationAsync(ulong userId)
-        {
-            string message = $@"
-            🏰 You are entering the dungeon!
-
-            The gate creaks open...  
-            Darkness and danger await beyond.
-
-            🗺️ Your adventure begins now!
-            ".Trim();
-            await SendMessageAsync(userId, message);
-            await ContiueExplorationAsync(userId);
-        }
-
-        public async Task StartBattleAsync(ulong userId)
-        {
-            string message = $@"
-            ⚠️ A wild 🐉 monster appears!
-
-            It blocks your path with a menacing glare...  
-            Prepare for battle!
-            ".Trim();
-            await SendMessageAsync(userId, message);
-            await ContiueBattleAsync(userId);
-        }
-
         public async Task EnterDungeonAsync(ulong userId)
         {
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
@@ -99,7 +73,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
             await SendMessageAsync(userId, dungeon);
             await SendMessageAsync(userId, await GetUserSummaryAsync(userId));
-            await SendMessageAsync(userId, await GetUserMapAsync(userId));
             await StartExplorationAsync(userId);
         }
 

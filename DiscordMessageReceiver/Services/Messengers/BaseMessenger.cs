@@ -81,6 +81,25 @@ namespace DiscordMessageReceiver.Services.Messengers{
             return map;
         }
 
+        public async Task<string> GetBattleSummaryAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/summary");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
+                return string.Empty;
+            }
+
+            var battleSummary = response;
+            if (battleSummary == null)
+            {
+                Console.WriteLine($"❌ 유저 배틀 요약 정보를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+
+            return battleSummary;
+        }
+
         protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null)
         {
             // if (!await CheckUserIsAOnlineAsync(userId))
@@ -158,6 +177,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 component.WithButton(label, id, ButtonStyle.Primary);
             }
 
+            await SendMessageAsync(userId, await GetUserMapAsync(userId));
             await SendMessageAsync(userId, "🏰 **Choose a room to enter:**\nSelect one of the available rooms below.", component);
         }
 
@@ -166,9 +186,36 @@ namespace DiscordMessageReceiver.Services.Messengers{
         /// </summary>
         public async Task ContiueBattleAsync(ulong userId)
         {
+            await SendMessageAsync(userId, await GetBattleSummaryAsync(userId));
             await SendMessageAsync(userId, "⚔️ What would you like to do?", new ComponentBuilder()
-                .WithButton("⚔ Attack", "battle_choice_attack", ButtonStyle.Primary)
-                .WithButton("🏃 Run", "battle_choice_run", ButtonStyle.Danger));
+                .WithButton("⚔ Attack", "battle_attack", ButtonStyle.Primary)
+                .WithButton("🏃 Run", "battle_run", ButtonStyle.Danger));
+        }
+
+        public async Task StartExplorationAsync(ulong userId)
+        {
+            string message = $@"
+            🏰 You are entering the dungeon!
+
+            The gate creaks open...  
+            Darkness and danger await beyond.
+
+            🗺️ Your adventure begins now!
+            ".Trim();
+            await SendMessageAsync(userId, message);
+            await ContiueExplorationAsync(userId);
+        }
+
+        public async Task StartBattleAsync(ulong userId)
+        {
+            string message = $@"
+            ⚠️ A wild 🐉 monster appears!
+
+            It blocks your path with a menacing glare...  
+            Prepare for battle!
+            ".Trim();
+            await SendMessageAsync(userId, message);
+            await ContiueBattleAsync(userId);
         }
 
         public virtual Task OnButtonExecutedAsync(SocketMessageComponent interaction){

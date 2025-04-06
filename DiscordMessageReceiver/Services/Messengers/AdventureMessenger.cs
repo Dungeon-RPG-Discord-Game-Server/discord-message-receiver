@@ -80,11 +80,10 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 case "MainMenuState":
                     break;
                 case "ExplorationState":
-                    await SendMessageAsync(user.Id, await GetUserMapAsync(user.Id));
                     await ContiueExplorationAsync(user.Id);
                     break;
                 case "BattleState":
-                    await SendMessageAsync(user.Id, "⚔️ You are in battle mode.");
+                    await StartBattleAsync(user.Id);
                     break;
                 default:
                     await SendMessageAsync(user.Id, "❌ Unknown game state.");
