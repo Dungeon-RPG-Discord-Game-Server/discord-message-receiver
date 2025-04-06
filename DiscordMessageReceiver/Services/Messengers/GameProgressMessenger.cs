@@ -55,27 +55,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("🪄 MagicWand", "game_wand", ButtonStyle.Success));
         }
 
-        public async Task EnterDungeonAsync(ulong userId)
-        {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
-            if (response == null)
-            {
-                Console.WriteLine($"❌ 던전을 찾을 수 없습니다: {userId}");
-                return;
-            }
-
-            var dungeon = response;
-            if (dungeon == null)
-            {
-                Console.WriteLine($"❌ 던전 정보를 가져오는 데 실패했습니다: {userId}");
-                return;
-            }
-
-            await SendMessageAsync(userId, dungeon);
-            await SendMessageAsync(userId, await GetUserSummaryAsync(userId));
-            await StartExplorationAsync(userId);
-        }
-
         /// <summary>
         /// 유저에게 버튼이 포함된 메인 메뉴 선택지 메시지를 DM으로 보냅니다.
         /// </summary>

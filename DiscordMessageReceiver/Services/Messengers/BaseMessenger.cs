@@ -143,6 +143,27 @@ namespace DiscordMessageReceiver.Services.Messengers{
             return gameState;
         }
 
+        public async Task EnterDungeonAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 던전을 찾을 수 없습니다: {userId}");
+                return;
+            }
+
+            var dungeon = response;
+            if (dungeon == null)
+            {
+                Console.WriteLine($"❌ 던전 정보를 가져오는 데 실패했습니다: {userId}");
+                return;
+            }
+
+            await SendMessageAsync(userId, dungeon);
+            await SendMessageAsync(userId, await GetUserSummaryAsync(userId));
+            await StartExplorationAsync(userId);
+        }
+
         public async Task ContiueExplorationAsync(ulong userId)
         {
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/neighbors");

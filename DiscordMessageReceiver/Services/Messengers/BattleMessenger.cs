@@ -13,6 +13,28 @@ namespace DiscordMessageReceiver.Services.Messengers{
         {
         }
 
+        public async Task<bool> BossClearedAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/boss");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저의 보스 클리어 요청에 실패하였습니다: {userId}");
+                return false;
+            }
+
+            var status = JsonSerializerWrapper.Deserialize<bool>(response);
+            if (status)
+            {
+                Console.WriteLine($"✅ 유저가 보스를 클리어 하였습니다: {userId}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ 유저가 보스를 클리어 하지 못했습니다: {userId}");
+            }
+
+            return status;
+        }
+
         public async Task<string> AttackAsync(ulong userId, bool skillUsed)
         {
             var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"battle/{userId}/attack?skillUsed={skillUsed.ToString().ToLower()}");
@@ -75,6 +97,16 @@ namespace DiscordMessageReceiver.Services.Messengers{
                     break;
                 case "battle_run":  
                     await SendMessageAsync(user.Id, "🏃 You are attempting to escape the battle.");
+                    Random random = new Random();
+                    int escapeChance = random.Next(1, 101); // 1 to 100
+                    if (escapeChance <= 50) // 50% chance to escape
+                    {
+                        await SendMessageAsync(user.Id, "✅ You successfully escaped the battle!");
+                    }
+                    else
+                    {
+                        await SendMessageAsync(user.Id, "❌ You failed to escape the battle.");
+                    }
                     break;
                 case "battle_normal_attack":    
                     await SendMessageAsync(user.Id, "🗡 You are using a normal attack.");
@@ -100,7 +132,16 @@ namespace DiscordMessageReceiver.Services.Messengers{
                     case "MainMenuState":
                         break;
                     case "ExplorationState":
-                        await ContiueExplorationAsync(user.Id);
+                    bool bossCleared = await BossClearedAsync(user.Id);
+                        if (bossCleared)
+                        {
+                            await SendMessageAsync(user.Id, "🏰 You have cleared the boss and now entering to dungeon.");
+                            await EnterDungeonAsync(user.Id);
+                        }
+                        else
+                        {
+                            await ContiueExplorationAsync(user.Id);
+                        }
                         break;
                     case "BattleState":
                         await ContiueBattleAsync(user.Id);
