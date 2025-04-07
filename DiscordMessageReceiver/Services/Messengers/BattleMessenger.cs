@@ -37,6 +37,27 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
             return status;
         }
+        public async Task<bool> MonsterExistsAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/monster");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저의 몬스터 존재 여부 요청에 실패하였습니다: {userId}");
+                return false;
+            }
+
+            var status = JsonSerializerWrapper.Deserialize<bool>(response);
+            if (status)
+            {
+                Console.WriteLine($"✅ 유저에게 몬스터가 존재합니다: {userId}");
+            }
+            else
+            {
+                Console.WriteLine($"❌ 유저에게 몬스터가 존재하지 않습니다: {userId}");
+            }
+
+            return status;
+        }
 
         public async Task<string> AttackAsync(ulong userId, bool skillUsed)
         {
@@ -148,12 +169,12 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 case "battle_normal_attack":    
                     await SendMessageAsync(user.Id, "🗡 You are using a normal attack.");
                     result = await AttackAsync(user.Id, false);
-                    monsterAttack = true;
+                    monsterAttack = await MonsterExistsAsync(user.Id);
                     break;
                 case "battle_skill_attack":
                     await SendMessageAsync(user.Id, "✨ You are using a skill attack.");
                     result = await AttackAsync(user.Id, true);
-                    monsterAttack = true;
+                    monsterAttack = await MonsterExistsAsync(user.Id);
                     break;
                 default:
                     await SendMessageAsync(user.Id, "❌ Unknown action.");
@@ -164,17 +185,29 @@ namespace DiscordMessageReceiver.Services.Messengers{
             if (interaction.Data.CustomId != "battle_attack")
             {
                 await SendMessageAsync(user.Id, result);
+                if (monsterAttack)
+                {
+                    monsterAttackResult = await MonsterAttackAsync(user.Id);
+                    await SendMessageAsync(user.Id, monsterAttackResult);
+                }
 
                 var gameState = await GetPlayerGameStateAsync(user.Id);
                 switch (gameState)
                 {
                     case "MainMenuState":
+                        string message = $@"
+                        ☠️ The monster’s blow was fatal...  
+                        You fall, but legends never die.  
+                        🌟 A new destiny awaits — your story starts again.
+                        ".Trim();
+                        await SendMessageAsync(user.Id, message);
+                        await StartMainStateAsync(user.Id);
                         break;
                     case "ExplorationState":
-                    bool bossCleared = await BossClearedAsync(user.Id);
+                        bool bossCleared = await BossClearedAsync(user.Id);
                         if (bossCleared)
                         {
-                            await SendMessageAsync(user.Id, "🏰 You have cleared the boss and now entering to dungeon.");
+                            await SendMessageAsync(user.Id, "🏰 You have cleared the boss and now entering to the new dungeon.");
                             await EnterDungeonAsync(user.Id);
                         }
                         else
@@ -183,11 +216,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                         }
                         break;
                     case "BattleState":
-                        if (monsterAttack)
-                        {
-                            monsterAttackResult = await MonsterAttackAsync(user.Id);
-                            await SendMessageAsync(user.Id, monsterAttackResult);
-                        }
                         await ContiueBattleAsync(user.Id);
                         break;
                     default:

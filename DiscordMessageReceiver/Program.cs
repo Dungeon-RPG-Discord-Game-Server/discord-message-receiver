@@ -11,7 +11,6 @@ using DotNetEnv;
 Env.Load();
 string? token = Environment.GetEnvironmentVariable("BOT_TOKEN");
 string? gameServiceBaseUrl = Environment.GetEnvironmentVariable("GAME_SERVICE_BASE_URL");
-gameServiceBaseUrl = "http://127.0.0.1:5048/api/";
 
 var builder = WebApplication.CreateBuilder(args);
 

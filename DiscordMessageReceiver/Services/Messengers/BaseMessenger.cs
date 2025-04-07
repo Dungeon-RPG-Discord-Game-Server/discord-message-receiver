@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using DiscordMessageReceiver.Dtos;
 using DiscordMessageReceiver.Services;
+using System.Drawing;
 
 namespace DiscordMessageReceiver.Services.Messengers{
     public class BaseMessenger{
@@ -211,6 +212,14 @@ namespace DiscordMessageReceiver.Services.Messengers{
             await SendMessageAsync(userId, "⚔️ What would you like to do?", new ComponentBuilder()
                 .WithButton("⚔ Attack", "battle_attack", ButtonStyle.Primary)
                 .WithButton("🏃 Run", "battle_run", ButtonStyle.Danger));
+        }
+
+        public async Task StartMainStateAsync(ulong userId)
+        {
+            await SendMessageAsync(userId, "🎮 What would you like to do?", new ComponentBuilder()
+                .WithButton("▶ Continue Game", "game_continue_game", ButtonStyle.Primary)
+                .WithButton("🆕 New Game", "game_new_game", ButtonStyle.Success)
+                .WithButton("🛑 Quit Game", "game_quit_game", ButtonStyle.Danger));
         }
 
         public async Task StartExplorationAsync(ulong userId)

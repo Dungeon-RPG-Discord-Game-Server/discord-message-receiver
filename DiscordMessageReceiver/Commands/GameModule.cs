@@ -40,7 +40,7 @@ namespace DiscordMessageReceiver.Commands
         [Summary("게임을 시작합니다.")]
         public async Task StartGameAsync()
         {
-            
+            await _gameProgressMessenger.StartMainStateAsync(Context.User.Id);
         }
 
         [Command("summary")]
