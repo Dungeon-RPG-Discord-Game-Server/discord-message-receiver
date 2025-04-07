@@ -6,6 +6,9 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
+using DiscordMessageReceiver.Dtos;
+using DiscordMessageReceiver.Services;
+
 namespace DiscordMessageReceiver.Services.Messengers{
     public class BattleMessenger : BaseMessenger
     {
@@ -54,6 +57,44 @@ namespace DiscordMessageReceiver.Services.Messengers{
             return result;
         }
 
+        public async Task<string> MonsterAttackAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/monster-attack");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 몬스터의 공격이 실패하였습니다: {userId}");
+                return string.Empty;
+            }
+
+            var result = response;
+            if (result == null)
+            {
+                Console.WriteLine($"❌ 몬스터의 공격 결과를 가져오는 데 실패했습니다: {userId}");
+                return string.Empty;
+            }
+
+            return result;
+        }
+
+        public async Task<BattleEscapeResultDto> RunAwayAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/run");
+            if (response == null)
+            {
+                Console.WriteLine($"❌ 유저의 도망 요청에 실패하였습니다: {userId}");
+                return new BattleEscapeResultDto { IsEscaped = false, Message = "Failed to escape." };
+            }
+
+            var result = JsonSerializerWrapper.Deserialize<BattleEscapeResultDto>(response);
+            if (result == null)
+            {
+                Console.WriteLine($"❌ 유저의 도망 결과를 가져오는 데 실패했습니다: {userId}");
+                return new BattleEscapeResultDto { IsEscaped = false, Message = "Failed to escape." };
+            }
+
+            return result;
+        }
+
         /// <summary>
         /// 유저에게 버튼이 포함된 공격 타입입 선택지 메시지를 DM으로 보냅니다.
         /// </summary>
@@ -89,34 +130,30 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 msg.Components = new ComponentBuilder().Build();
             });
 
+            string result = string.Empty;
+            string monsterAttackResult;
+            bool monsterAttack = false;
+
             switch (interaction.Data.CustomId)
             {
-
                 case "battle_attack":
                     await SendAttackChoiceButtonsAsync(user.Id);
                     break;
                 case "battle_run":  
                     await SendMessageAsync(user.Id, "🏃 You are attempting to escape the battle.");
-                    Random random = new Random();
-                    int escapeChance = random.Next(1, 101); // 1 to 100
-                    if (escapeChance <= 50) // 50% chance to escape
-                    {
-                        await SendMessageAsync(user.Id, "✅ You successfully escaped the battle!");
-                    }
-                    else
-                    {
-                        await SendMessageAsync(user.Id, "❌ You failed to escape the battle.");
-                    }
+                    var escapeResult = await RunAwayAsync(user.Id);
+                    result = escapeResult.Message;
+                    monsterAttack = !escapeResult.IsEscaped;
                     break;
                 case "battle_normal_attack":    
                     await SendMessageAsync(user.Id, "🗡 You are using a normal attack.");
-                    string result = await AttackAsync(user.Id, false);
-                    await SendMessageAsync(user.Id, result);
+                    result = await AttackAsync(user.Id, false);
+                    monsterAttack = true;
                     break;
                 case "battle_skill_attack":
                     await SendMessageAsync(user.Id, "✨ You are using a skill attack.");
-                    string skillResult = await AttackAsync(user.Id, true);
-                    await SendMessageAsync(user.Id, skillResult);
+                    result = await AttackAsync(user.Id, true);
+                    monsterAttack = true;
                     break;
                 default:
                     await SendMessageAsync(user.Id, "❌ Unknown action.");
@@ -126,6 +163,8 @@ namespace DiscordMessageReceiver.Services.Messengers{
             //만약 게임 스테이트가 배틀이면 배틀 실행
             if (interaction.Data.CustomId != "battle_attack")
             {
+                await SendMessageAsync(user.Id, result);
+
                 var gameState = await GetPlayerGameStateAsync(user.Id);
                 switch (gameState)
                 {
@@ -144,6 +183,11 @@ namespace DiscordMessageReceiver.Services.Messengers{
                         }
                         break;
                     case "BattleState":
+                        if (monsterAttack)
+                        {
+                            monsterAttackResult = await MonsterAttackAsync(user.Id);
+                            await SendMessageAsync(user.Id, monsterAttackResult);
+                        }
                         await ContiueBattleAsync(user.Id);
                         break;
                     default:
