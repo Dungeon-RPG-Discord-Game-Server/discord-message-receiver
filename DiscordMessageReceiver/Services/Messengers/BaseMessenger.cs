@@ -101,13 +101,18 @@ namespace DiscordMessageReceiver.Services.Messengers{
             return battleSummary;
         }
 
-        protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null)
+        protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null, bool formatted=false)
         {
             // if (!await CheckUserIsAOnlineAsync(userId))
             // {
             //     return;
             // }
             var user = await _client.Rest.GetUserAsync(userId);
+            string formattedMessage = message;
+            if (formatted)
+            {
+                formattedMessage = $"```\n{message}\n```";
+            }
             if (user == null)
             {
                 Console.WriteLine($"SendMessageAsync: ❌ 유저를 찾을 수 없습니다: {userId}");
@@ -118,11 +123,11 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
             if (component == null)
             {
-                await dm.SendMessageAsync(message);
+                await dm.SendMessageAsync(formattedMessage);
                 Console.WriteLine($"SendMessageAsync: ✅ 메세지를 {userId}에게 전송했습니다.");
             }else
             {
-                await dm.SendMessageAsync(message, components: component.Build());
+                await dm.SendMessageAsync(formattedMessage, components: component.Build());
                 Console.WriteLine($"SendMessageAsync: ✅ 선택지를 {userId}에게 전송했습니다.");
             }
         }
