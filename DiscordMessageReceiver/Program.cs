@@ -8,13 +8,34 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using DotNetEnv;
 
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+using Telemetry.Trace;
+
 Env.Load();
 string? token = Environment.GetEnvironmentVariable("BOT_TOKEN");
 string? gameServiceBaseUrl = Environment.GetEnvironmentVariable("GAME_SERVICE_BASE_URL");
 
 var builder = WebApplication.CreateBuilder(args);
 
+IConfiguration configuration = builder.Configuration;
+
+string serviceName = configuration["Logging:ServiceName"];
+string serviceVersion = configuration["Logging:ServiceVersion"];
+
 // 서비스 등록 (DI)
+builder.Services.AddOpenTelemetry().WithTracing(tcb =>
+{
+    tcb
+    .AddSource(serviceName)
+    .SetResourceBuilder(
+        ResourceBuilder.CreateDefault()
+            .AddService(serviceName: serviceName, serviceVersion: serviceVersion))
+    .AddAspNetCoreInstrumentation() // Automatically generate log lines for HTTP requests
+    .AddJsonConsoleExporter(); // Output log lines to the console
+});
+
 builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton<CommandService>();
 builder.Services.AddSingleton<IDiscordClientManager, DiscordClientManager>();
