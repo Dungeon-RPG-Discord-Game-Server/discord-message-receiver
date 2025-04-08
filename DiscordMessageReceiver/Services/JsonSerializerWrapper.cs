@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DiscordMessageReceiver.Services
 {
@@ -8,20 +9,27 @@ namespace DiscordMessageReceiver.Services
         private static readonly JsonSerializerOptions _options = new()
         {
             PropertyNameCaseInsensitive = true,
-            WriteIndented = false // 필요 시 true 로 설정
+            WriteIndented = false, // 필요 시 true 로 설정
+            Converters = { new JsonStringEnumConverter() }
         };
 
         public static string Serialize<T>(T obj)
         {
-            return JsonSerializer.Serialize(obj, _options);
+            try
+            {
+                 return JsonSerializer.Serialize(obj, _options);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"❌ failed to serialize JSON: {ex.Message}");
+            }
         }
 
         public static T? Deserialize<T>(string? json)
         {
             if (string.IsNullOrWhiteSpace(json))
             {
-                Console.WriteLine("⚠️ JSON 문자열이 null 또는 비어있습니다.");
-                return default;
+                throw new Exception("⚠️ JSON string is null or empty.");
             }
 
             try
@@ -30,8 +38,7 @@ namespace DiscordMessageReceiver.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ JSON 역직렬화 실패: {ex.Message}");
-                return default;
+                throw new Exception($"❌ failed to deserialize JSON: {ex.Message}");
             }
         }
     }

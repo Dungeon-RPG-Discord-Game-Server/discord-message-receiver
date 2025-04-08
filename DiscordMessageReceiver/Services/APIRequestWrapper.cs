@@ -28,14 +28,12 @@ namespace DiscordMessageReceiver.Services
                 }
                 else
                 {
-                    Console.WriteLine($"❌ POST 실패: {url} ({response.StatusCode})");
-                    return null;
+                    throw new Exception($"POST request failed: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❗ 예외 발생: {ex.Message}");
-                return null;
+                throw new Exception($"Error in PostAsync: {ex.Message}");
             }
         }
 
@@ -49,13 +47,10 @@ namespace DiscordMessageReceiver.Services
                 {
                     var json = JsonSerializer.Serialize(payload);
                     content = new StringContent(json, Encoding.UTF8, "application/json");
-                    Console.WriteLine($"✅ POST 요청: {url}\nPayload: {json}");
                 }
                 else
                 {
-                    // 비어있는 바디를 보낼 수도 있고, null로도 보낼 수 있음
                     content = new StringContent("", Encoding.UTF8, "application/json");
-                    Console.WriteLine($"✅ POST 요청 (payload 없음): {url}");
                 }
 
                 var response = await _httpClient.PostAsync(url, content);
@@ -63,19 +58,16 @@ namespace DiscordMessageReceiver.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ POST 요청 성공: {url}\n응답: {responseText}");
                     return responseText;
                 }
                 else
                 {
-                    Console.WriteLine($"❌ POST 실패: {url} ({response.StatusCode})");
-                    return null;
+                    throw new Exception($"POST request failed: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❗ 예외 발생: {ex.Message}");
-                return null;
+                throw new Exception($"Error in PostAsync: {ex.Message}");
             }
         }
 
@@ -88,19 +80,16 @@ namespace DiscordMessageReceiver.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ GET 요청 성공: {url}\n응답: {responseText}");
                     return responseText;
                 }
                 else
                 {
-                    Console.WriteLine($"❌ GET 실패: {response.StatusCode}");
-                    return null;
+                    throw new Exception($"GET request failed: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❗ 예외 발생: {ex.Message}");
-                return null;
+                throw new Exception($"Error in PostAsync: {ex.Message}");
             }
         }
 
@@ -116,19 +105,16 @@ namespace DiscordMessageReceiver.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ PUT 요청 성공: {url}\n응답: {responseText}");
                     return responseText;
                 }
                 else
                 {
-                    Console.WriteLine($"❌ PUT 실패: {response.StatusCode}");
-                    return null;
+                    throw new Exception($"PUT request failed: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❗ 예외 발생: {ex.Message}");
-                return null;
+                throw new Exception($"Error in PostAsync: {ex.Message}");
             }
         }
 
@@ -141,19 +127,16 @@ namespace DiscordMessageReceiver.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
-                    Console.WriteLine($"✅ DELETE 요청 성공: {url}\n응답: {responseText}");
                     return responseText;
                 }
                 else
                 {
-                    Console.WriteLine($"❌ DELETE 실패: {response.StatusCode}");
-                    return null;
+                    throw new Exception($"DELETE request failed: {response.StatusCode}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❗ 예외 발생: {ex.Message}");
-                return null;
+                throw new Exception($"Error in PostAsync: {ex.Message}");
             }
         }
     }

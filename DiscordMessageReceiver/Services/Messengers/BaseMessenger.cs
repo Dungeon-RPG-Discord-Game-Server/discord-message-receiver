@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using DiscordMessageReceiver.Dtos;
 using DiscordMessageReceiver.Services;
-using System.Drawing;
+using DiscordMessageReceiver.Utils;
 
 namespace DiscordMessageReceiver.Services.Messengers{
     public class BaseMessenger{
@@ -27,19 +27,16 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/status");
             if (response == null)
             {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
-                return false;
+                throw new UserErrorException($"{nameof(CheckUserIsAOnlineAsync)}: Failed to check user status");
             }
 
             var status = JsonSerializerWrapper.Deserialize<PlayerStatusDto>(response);
             if (status.Online)
             {
-                Console.WriteLine($"✅ 유저가 현재 게임을 진행중입니다: {userId}");
                 return true;
             }
             else
             {
-                Console.WriteLine($"❌ 유저가 현재 게임을 진행중이지 않습니다: {userId}");
                 return false;
             }
         }
@@ -49,15 +46,13 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/summary");
             if (response == null)
             {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetUserSummaryAsync)}: Failed to get user summary");
             }
 
             var summary = response;
             if (summary == null)
             {
-                Console.WriteLine($"❌ 유저 요약 정보를 가져오는 데 실패했습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetUserSummaryAsync)}: Failed to get user summary");
             }
 
             return summary;
@@ -68,15 +63,13 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map");
             if (response == null)
             {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetUserMapAsync)}: Failed to get user map");
             }
 
             var map = response;
             if (map == null)
             {
-                Console.WriteLine($"❌ 유저 맵 정보를 가져오는 데 실패했습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetUserMapAsync)}: Failed to get user map");
             }
 
             return map;
@@ -87,15 +80,13 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/summary");
             if (response == null)
             {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetBattleSummaryAsync)}: Failed to get battle summary");
             }
 
             var battleSummary = response;
             if (battleSummary == null)
             {
-                Console.WriteLine($"❌ 유저 배틀 요약 정보를 가져오는 데 실패했습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetBattleSummaryAsync)}: Failed to get battle summary");
             }
 
             return battleSummary;
@@ -115,8 +106,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
             if (user == null)
             {
-                Console.WriteLine($"SendMessageAsync: ❌ 유저를 찾을 수 없습니다: {userId}");
-                return;
+                throw new UserErrorException($"{nameof(SendMessageAsync)}: Failed to send message to user");
             }
 
             var dm = await user.CreateDMChannelAsync();
@@ -124,11 +114,9 @@ namespace DiscordMessageReceiver.Services.Messengers{
             if (component == null)
             {
                 await dm.SendMessageAsync(formattedMessage);
-                Console.WriteLine($"SendMessageAsync: ✅ 메세지를 {userId}에게 전송했습니다.");
             }else
             {
                 await dm.SendMessageAsync(formattedMessage, components: component.Build());
-                Console.WriteLine($"SendMessageAsync: ✅ 선택지를 {userId}에게 전송했습니다.");
             }
         }
 
@@ -137,14 +125,12 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/state");
             if (response == null)
             {
-                Console.WriteLine($"❌ 유저를 찾을 수 없습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetPlayerGameStateAsync)}: Failed to get user game state");
             }
             var gameState = response;
             if (gameState == null)
             {
-                Console.WriteLine($"❌ 유저 게임 상태 정보를 가져오는 데 실패했습니다: {userId}");
-                return string.Empty;
+                throw new UserErrorException($"{nameof(GetPlayerGameStateAsync)}: Failed to get user game state");
             }
             return gameState;
         }
@@ -154,15 +140,13 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
             if (response == null)
             {
-                Console.WriteLine($"❌ 던전을 찾을 수 없습니다: {userId}");
-                return;
+                throw new UserErrorException($"{nameof(EnterDungeonAsync)}: Failed to enter dungeon");
             }
 
             var dungeon = response;
             if (dungeon == null)
             {
-                Console.WriteLine($"❌ 던전 정보를 가져오는 데 실패했습니다: {userId}");
-                return;
+                throw new UserErrorException($"{nameof(EnterDungeonAsync)}: Failed to enter dungeon");
             }
 
             await SendMessageAsync(userId, dungeon);
@@ -176,8 +160,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var directions = JsonSerializerWrapper.Deserialize<string[]>(response);
             if (directions == null || directions.Length == 0)
             {
-                Console.WriteLine($"❌ 유저의 방 정보를 가져올 수 없습니다: {userId}");
-                return;
+                throw new UserErrorException($"{nameof(ContiueExplorationAsync)}: Failed to get user map directions");
             }
             
             var component = new ComponentBuilder();
@@ -255,7 +238,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public virtual Task OnButtonExecutedAsync(SocketMessageComponent interaction){
             // 기본 동작 또는 비워도 됨
-            Console.WriteLine($"[BaseMessenger] Button clicked: {interaction.Data.CustomId} by {interaction.User.Username}");
             return Task.CompletedTask;
         }
     }
