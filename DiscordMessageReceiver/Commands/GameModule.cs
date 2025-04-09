@@ -43,6 +43,38 @@ namespace DiscordMessageReceiver.Commands
             await _gameProgressMessenger.StartMainStateAsync(Context.User.Id);
         }
 
+        [Command("save")]
+        [Summary("게임을 저장합니다.")]
+        public async Task SaveGameAsync()
+        {
+            string? response = await _gameProgressMessenger.SaveGameAsync(Context.User.Id);
+            if (response!=null)
+            {
+                await ReplyAsync(response);
+                return;
+            }else
+            {
+                await ReplyAsync("게임 서비스와 연결할 수 없습니다.");
+                return;
+            }
+        }
+
+        [Command("load")]
+        [Summary("게임을 불러옵니다.")]
+        public async Task LoadGameAsync()
+        {
+            string? response = await _gameProgressMessenger.LoadGameAsync(Context.User.Id);
+            if (response!=null)
+            {
+                await ReplyAsync(response);
+                return;
+            }else
+            {
+                await ReplyAsync("게임 서비스와 연결할 수 없습니다.");
+                return;
+            }
+        }
+
         [Command("summary")]
         [Summary("게임을 시작합니다.")]
         public async Task UserSummaryAsync()

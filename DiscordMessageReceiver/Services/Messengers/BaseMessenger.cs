@@ -92,6 +92,40 @@ namespace DiscordMessageReceiver.Services.Messengers{
             return battleSummary;
         }
 
+        public async Task<string> SaveGameAsync(ulong userId)
+        {
+            var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"saveload/{userId}/save");
+            if (response == null)
+            {
+                throw new UserErrorException($"{nameof(SaveGameAsync)}: Failed to save game");
+            }
+
+            var saveGame = response;
+            if (saveGame == null)
+            {
+                throw new UserErrorException($"{nameof(SaveGameAsync)}: Failed to save game");
+            }
+
+            return saveGame;
+        }
+
+        public async Task<string> LoadGameAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"saveload/{userId}/load");
+            if (response == null)
+            {
+                throw new UserErrorException($"{nameof(LoadGameAsync)}: Failed to load game");
+            }
+
+            var loadGame = response;
+            if (loadGame == null)
+            {
+                throw new UserErrorException($"{nameof(LoadGameAsync)}: Failed to load game");
+            }
+
+            return loadGame;
+        }
+
         protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null, bool formatted=false)
         {
             // if (!await CheckUserIsAOnlineAsync(userId))
