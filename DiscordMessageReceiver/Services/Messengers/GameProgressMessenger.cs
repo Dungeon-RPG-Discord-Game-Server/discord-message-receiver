@@ -48,6 +48,38 @@ namespace DiscordMessageReceiver.Services.Messengers{
             await SendMessageAsync(userId, status.Message);
         }
 
+        public async Task LoadUserProgressAsync(ulong userId)
+        {
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + "game/" + userId.ToString() + "/load");
+            if (response == null)
+            {
+                throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Failed to load user progress");
+            }
+
+            var gameState = await GetPlayerGameStateAsync(userId);
+            if (gameState == null)
+            {
+                throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Failed to get player game state");
+            }
+
+            switch (gameState)
+            {
+                case "MainMenuState":
+                    await SendMainStateChoiceButtonsAsync(userId);
+                    break;
+                case "ExplorationState":
+                    await ContiueExplorationAsync(userId);
+                    break;
+                case "BattleState":
+                    await ContiueBattleAsync(userId);
+                    break;
+                default:
+                    throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Unknown game state");
+            }
+
+            await SendMessageAsync(userId, response);
+        }
+
         public async Task SendUserRegisterAsync(ulong userId)
         {
             //TODO: 유저가 이미 등록되어 있는지 확인하는 로직 추가
