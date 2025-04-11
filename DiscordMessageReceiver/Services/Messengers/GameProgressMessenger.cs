@@ -50,7 +50,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public async Task LoadUserProgressAsync(ulong userId)
         {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + "game/" + userId.ToString() + "/load");
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + "saveload/" + userId.ToString() + "/load");
             if (response == null)
             {
                 throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Failed to load user progress");
