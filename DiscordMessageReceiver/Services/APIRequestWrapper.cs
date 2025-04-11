@@ -63,10 +63,8 @@ namespace DiscordMessageReceiver.Services
                     Content = content
                 };
                 request.Headers.Add("X-API-KEY", await _apiKeyManager.GetValidApiKeyAsync());
-                Console.WriteLine($"🔑 Request API Key: {request}");
 
                 var response = await _httpClient.SendAsync(request);
-                Console.WriteLine($"🔑 Request API Key: {response}");
 
                 if (response.IsSuccessStatusCode)
                 {

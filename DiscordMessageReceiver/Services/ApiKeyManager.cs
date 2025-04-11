@@ -32,7 +32,6 @@ namespace DiscordMessageReceiver.Services
             _secretClient = new SecretClient(keyVaultUri, new DefaultAzureCredential());
             _keyName = "discord-bot";
             _managerKey = _secretClient.GetSecret("admin-api-key").Value.Value;
-            Console.WriteLine($"🔑 Manager Key: {_managerKey}");
         }
 
         public async Task<string?> RequestApiKeyAsync(string url, string managerKey)

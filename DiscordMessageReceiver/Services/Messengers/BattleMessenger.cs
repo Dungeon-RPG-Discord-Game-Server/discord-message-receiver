@@ -118,114 +118,120 @@ namespace DiscordMessageReceiver.Services.Messengers{
         /// </summary>
         public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
-            using(var log = _logger.StartMethod(nameof(OnButtonExecutedAsync))){
-                try{
-                    var user = interaction.User;
+            await interaction.DeferAsync(); // 💡 먼저 Discord에 "응답 예정" 알리기
 
-                    log.SetAttribute("button.type", nameof(BattleMessenger));
-                    log.SetAttribute("button.userId", user.Id.ToString());
-                    log.SetAttribute("button.customId", interaction.Data.CustomId);
-
-                    var customId = interaction.Data.CustomId;
-
-                    // 1. 메시지 수정 내용 준비
-                    string content = customId switch
+            _ = Task.Run(async () =>
+            {
+                using (var log = _logger.StartMethod(nameof(OnButtonExecutedAsync)))
+                {
+                    try
                     {
-                        "battle_attack"   => "⚔ You have selected **Attack**.\nPreparing your weapon...",
-                        "battle_run"      => "🏃 You have selected **Run**.\nAttempting to escape...",
-                        "battle_normal_attack"   => "🗡 You have selected **Normal Attack**.\nReady to strike!",
-                        "battle_skill_attack"    => "✨ You have selected **Skill Attack**.\nUnleashing your special ability!",
-                        _                 => $"❌ You have selected an unknown option: **{customId}**.\nPlease try again."
-                    };
+                        var user = interaction.User;
+                        var customId = interaction.Data.CustomId;
 
-                    // 2. 버튼 제거하고 메시지 수정
-                    await interaction.UpdateAsync(msg =>
-                    {
-                        msg.Content = content;
-                        msg.Components = new ComponentBuilder().Build();
-                    });
+                        log.SetAttribute("button.type", nameof(BattleMessenger));
+                        log.SetAttribute("button.userId", user.Id.ToString());
+                        log.SetAttribute("button.customId", customId);
 
-                    string result = string.Empty;
-                    string monsterAttackResult;
-                    bool monsterAttack = false;
-
-                    switch (interaction.Data.CustomId)
-                    {
-                        case "battle_attack":
-                            await SendAttackChoiceButtonsAsync(user.Id);
-                            break;
-                        case "battle_run":  
-                            await SendMessageAsync(user.Id, "🏃 You are attempting to escape the battle.");
-                            var escapeResult = await RunAwayAsync(user.Id);
-                            result = escapeResult.Message;
-                            monsterAttack = !escapeResult.IsEscaped;
-                            break;
-                        case "battle_normal_attack":    
-                            await SendMessageAsync(user.Id, "🗡 You are using a normal attack.");
-                            result = await AttackAsync(user.Id, false);
-                            monsterAttack = await MonsterExistsAsync(user.Id);
-                            break;
-                        case "battle_skill_attack":
-                            await SendMessageAsync(user.Id, "✨ You are using a skill attack.");
-                            result = await AttackAsync(user.Id, true);
-                            monsterAttack = await MonsterExistsAsync(user.Id);
-                            break;
-                        default:
-                            await SendMessageAsync(user.Id, "❌ Unknown action.");
-                            break;
-                    }
-
-                    //만약 게임 스테이트가 배틀이면 배틀 실행
-                    if (interaction.Data.CustomId != "battle_attack")
-                    {
-                        await SendMessageAsync(user.Id, result);
-                        if (monsterAttack)
+                        string content = customId switch
                         {
-                            monsterAttackResult = await MonsterAttackAsync(user.Id);
-                            await SendMessageAsync(user.Id, monsterAttackResult);
-                        }
+                            "battle_attack"         => "⚔ You have selected **Attack**.\nPreparing your weapon...",
+                            "battle_run"            => "🏃 You have selected **Run**.\nAttempting to escape...",
+                            "battle_normal_attack"  => "🗡 You have selected **Normal Attack**.\nReady to strike!",
+                            "battle_skill_attack"   => "✨ You have selected **Skill Attack**.\nUnleashing your special ability!",
+                            _                       => $"❌ You have selected an unknown option: **{customId}**.\nPlease try again."
+                        };
 
-                        var gameState = await GetPlayerGameStateAsync(user.Id);
-                        switch (gameState)
+                        await interaction.ModifyOriginalResponseAsync(msg =>
                         {
-                            case "MainMenuState":
-                                string message = $@"
-                                ☠️ The monster’s blow was fatal...  
-                                You fall, but legends never die.  
-                                🌟 A new destiny awaits — your story starts again.
-                                ".Trim();
-                                await SendMessageAsync(user.Id, message);
-                                await StartMainStateAsync(user.Id);
+                            msg.Content = content;
+                            msg.Components = new ComponentBuilder().Build(); // 버튼 제거
+                        });
+
+                        string result = string.Empty;
+                        string monsterAttackResult;
+                        bool monsterAttack = false;
+
+                        switch (customId)
+                        {
+                            case "battle_attack":
+                                await SendAttackChoiceButtonsAsync(user.Id);
                                 break;
-                            case "ExplorationState":
-                                bool bossCleared = await BossClearedAsync(user.Id);
-                                if (bossCleared)
-                                {
-                                    await SendMessageAsync(user.Id, "🏰 You have cleared the boss and now entering to the new dungeon.");
-                                    await EnterDungeonAsync(user.Id);
-                                }
-                                else
-                                {
-                                    await ContiueExplorationAsync(user.Id);
-                                }
+                            case "battle_run":
+                                await SendMessageAsync(user.Id, "🏃 You are attempting to escape the battle.");
+                                var escapeResult = await RunAwayAsync(user.Id);
+                                result = escapeResult.Message;
+                                monsterAttack = !escapeResult.IsEscaped;
                                 break;
-                            case "BattleState":
-                                await ContiueBattleAsync(user.Id);
+                            case "battle_normal_attack":
+                                await SendMessageAsync(user.Id, "🗡 You are using a normal attack.");
+                                result = await AttackAsync(user.Id, false);
+                                monsterAttack = await MonsterExistsAsync(user.Id);
+                                break;
+                            case "battle_skill_attack":
+                                await SendMessageAsync(user.Id, "✨ You are using a skill attack.");
+                                result = await AttackAsync(user.Id, true);
+                                monsterAttack = await MonsterExistsAsync(user.Id);
                                 break;
                             default:
-                                await SendMessageAsync(user.Id, "❌ Unknown game state.");
+                                await SendMessageAsync(user.Id, "❌ Unknown action.");
                                 break;
                         }
+
+                        if (customId != "battle_attack")
+                        {
+                            await SendMessageAsync(user.Id, result);
+
+                            if (monsterAttack)
+                            {
+                                monsterAttackResult = await MonsterAttackAsync(user.Id);
+                                await SendMessageAsync(user.Id, monsterAttackResult);
+                            }
+
+                            var gameState = await GetPlayerGameStateAsync(user.Id);
+                            switch (gameState)
+                            {
+                                case "MainMenuState":
+                                    string message = $@"
+                                    ☠️ The monster’s blow was fatal...  
+                                    You fall, but legends never die.  
+                                    🌟 A new destiny awaits — your story starts again.
+                                    ".Trim();
+                                    await SendMessageAsync(user.Id, message);
+                                    await StartMainStateAsync(user.Id);
+                                    break;
+                                case "ExplorationState":
+                                    bool bossCleared = await BossClearedAsync(user.Id);
+                                    if (bossCleared)
+                                    {
+                                        await SendMessageAsync(user.Id, "🏰 You have cleared the boss and now entering to the new dungeon.");
+                                        await EnterDungeonAsync(user.Id);
+                                    }
+                                    else
+                                    {
+                                        await ContiueExplorationAsync(user.Id);
+                                    }
+                                    break;
+                                case "BattleState":
+                                    await ContiueBattleAsync(user.Id);
+                                    break;
+                                default:
+                                    await SendMessageAsync(user.Id, "❌ Unknown game state.");
+                                    break;
+                            }
+                        }
                     }
-                }catch (UserErrorException e)
-                {
-                    log.LogUserError(e.Message);
+                    catch (UserErrorException e)
+                    {
+                        log.LogUserError(e.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        log.HandleException(e);
+                    }
                 }
-                catch(Exception e)
-                {
-                    log.HandleException(e);
-                }
-            }
+            });
         }
+
     }
 }

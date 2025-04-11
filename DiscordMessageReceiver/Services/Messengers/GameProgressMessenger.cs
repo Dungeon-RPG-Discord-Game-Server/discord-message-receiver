@@ -104,64 +104,71 @@ namespace DiscordMessageReceiver.Services.Messengers{
         /// </summary>
         public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
-            using(var log = _logger.StartMethod(nameof(OnButtonExecutedAsync))){
-                try{
+            using (var log = _logger.StartMethod(nameof(OnButtonExecutedAsync)))
+            {
+                try
+                {
                     var user = interaction.User;
+                    var customId = interaction.Data.CustomId;
+
+                    // ⏱ 먼저 응답 지연 처리
+                    await interaction.DeferAsync();
 
                     log.SetAttribute("button.type", nameof(GameProgressMessenger));
                     log.SetAttribute("button.userId", user.Id.ToString());
-                    log.SetAttribute("button.customId", interaction.Data.CustomId);
+                    log.SetAttribute("button.customId", customId);
 
-                    string content = interaction.Data.CustomId switch
+                    _ = Task.Run(async () =>
                     {
-                        "game_continue_game" => "✅ You have selected **Continue Game**.\nPreparing to load your progress...",
-                        "game_new_game"      => "🆕 You have selected **New Game**.\nCreating a new adventure...",
-                        "game_quit_game"     => "🛑 You have selected **Quit Game**.\nHope to see you again soon!",
-                        "game_sword"         => "🗡️ You have selected **Sword**.\nPreparing to register your weapon...",
-                        "game_wand"          => "🪄 You have selected **Magic Wand**.\nPreparing to register your weapon...",
-                        _               => $"❌ You have selected an unknown option: **{interaction.Data.CustomId}**.\nPlease try again."
-                    };
+                        try
+                        {
+                            string content = customId switch
+                            {
+                                "game_continue_game" => "✅ You have selected **Continue Game**.\nPreparing to load your progress...",
+                                "game_new_game" => "🆕 You have selected **New Game**.\nCreating a new adventure...",
+                                "game_quit_game" => "🛑 You have selected **Quit Game**.\nHope to see you again soon!",
+                                "game_sword" => "🗡️ You have selected **Sword**.\nPreparing to register your weapon...",
+                                "game_wand" => "🪄 You have selected **Magic Wand**.\nPreparing to register your weapon...",
+                                _ => $"❌ You have selected an unknown option: **{customId}**.\nPlease try again."
+                            };
 
-                    var builder = new ComponentBuilder(); // 버튼 제거
+                            await interaction.ModifyOriginalResponseAsync(msg =>
+                            {
+                                msg.Content = content;
+                                msg.Components = new ComponentBuilder().Build();
+                            });
 
-                    await interaction.UpdateAsync(msg =>
-                    {
-                        msg.Content = content;
-                        msg.Components = builder.Build();
+                            switch (customId)
+                            {
+                                case "game_sword":
+                                    await UserRegisterAsync(user.Id, 0);
+                                    await EnterDungeonAsync(user.Id);
+                                    break;
+                                case "game_wand":
+                                    await UserRegisterAsync(user.Id, 1);
+                                    await EnterDungeonAsync(user.Id);
+                                    break;
+                                case "game_new_game":
+                                    await SendUserRegisterAsync(user.Id);
+                                    break;
+                                case "game_continue_game":
+                                    await LoadUserProgressAsync(user.Id);
+                                    break;
+                                case "game_quit_game":
+                                    break;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            log.HandleException(ex);
+                        }
                     });
-
-                    // 후속 비동기 작업은 여기서 실행
-                    switch (interaction.Data.CustomId)
-                    {
-                        case "game_sword":
-                            await UserRegisterAsync(user.Id, 0);
-                            await EnterDungeonAsync(user.Id);
-                            break;
-                        case "game_wand":
-                            await UserRegisterAsync(user.Id, 1);
-                            await EnterDungeonAsync(user.Id);
-                            break;
-                        case "game_continue_game":
-                            //Player progress를 불러오는 API 호출
-                        case "game_new_game":
-                            await SendUserRegisterAsync(user.Id);
-                            break;
-                        case "game_quit_game":
-                            // TODO: 필요 시 처리 추가
-                            break;
-                        default:
-                            break;
-                    }
-                }catch (UserErrorException e)
-                {
-                    log.LogUserError(e.Message);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     log.HandleException(e);
                 }
             }
-            // TODO: 선택 결과를 게임 서비스 API에 전달
         }
     }
 }

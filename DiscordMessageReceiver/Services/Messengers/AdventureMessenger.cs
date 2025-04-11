@@ -47,78 +47,75 @@ namespace DiscordMessageReceiver.Services.Messengers{
         /// </summary>
         public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
-            using(var log = _logger.StartMethod(nameof(OnButtonExecutedAsync))){
-                try{
-                    var user = interaction.User;
+            await interaction.DeferAsync(); // 🔹 응답 예약 (즉시 처리)
 
-                    log.SetAttribute("button.type", nameof(AdventureMessenger));
-                    log.SetAttribute("button.userId", user.Id.ToString());
-                    log.SetAttribute("button.customId", interaction.Data.CustomId);
-
-                    var customId = interaction.Data.CustomId;
-
-                    string content = customId switch
+            _ = Task.Run(async () =>
+            {
+                using (var log = _logger.StartMethod(nameof(OnButtonExecutedAsync)))
+                {
+                    try
                     {
-                        "adventure_up"    => "⬆️ You chose to move **up**. Heading north...",
-                        "adventure_down"  => "⬇️ You chose to move **down**. Descending...",
-                        "adventure_left"  => "⬅️ You chose to move **left**. Moving west...",
-                        "adventure_right" => "➡️ You chose to move **right**. Moving east...",
-                        _       => "❓ Unknown direction. Please try again."
-                    };
+                        var user = interaction.User;
+                        var customId = interaction.Data.CustomId;
 
-                    var builder = new ComponentBuilder(); // 버튼 제거
+                        log.SetAttribute("button.type", nameof(AdventureMessenger));
+                        log.SetAttribute("button.userId", user.Id.ToString());
+                        log.SetAttribute("button.customId", customId);
 
-                    await interaction.UpdateAsync(msg =>
-                    {
-                        msg.Content = content;
-                        msg.Components = builder.Build();
-                    });
+                        string content = customId switch
+                        {
+                            "adventure_up"    => "⬆️ You chose to move **up**. Heading north...",
+                            "adventure_down"  => "⬇️ You chose to move **down**. Descending...",
+                            "adventure_left"  => "⬅️ You chose to move **left**. Moving west...",
+                            "adventure_right" => "➡️ You chose to move **right**. Moving east...",
+                            _                 => "❓ Unknown direction. Please try again."
+                        };
 
-                    // TODO: 선택 결과를 게임 서비스 API에 전달하는 로직 추가
-                    switch (interaction.Data.CustomId)
-                    {
+                        await interaction.ModifyOriginalResponseAsync(msg =>
+                        {
+                            msg.Content = content;
+                            msg.Components = new ComponentBuilder().Build();
+                        });
 
-                        case "adventure_up":
-                        case "adventure_down":
-                        case "adventure_left":
-                        case "adventure_right":
-                            string direction = interaction.Data.CustomId.Replace("adventure_", "");
+                        // 🔹 이동 요청
+                        if (customId.StartsWith("adventure_"))
+                        {
+                            string direction = customId.Replace("adventure_", "");
                             var moveRequest = new MovePlayerRequestDto
                             {
                                 UserId = user.Id.ToString(),
                                 Direction = direction
                             };
                             await MovePlayerAsync(moveRequest);
-                            break;
-                        default:
-                            break;
-                    }
+                        }
 
-                    //만약 게임 스테이트가 배틀이면 배틀 실행
-                    var gameState = await GetPlayerGameStateAsync(user.Id);
-                    switch (gameState)
-                    {
-                        case "MainMenuState":
-                            break;
-                        case "ExplorationState":
-                            await ContiueExplorationAsync(user.Id);
-                            break;
-                        case "BattleState":
-                            await StartBattleAsync(user.Id);
-                            break;
-                        default:
-                            await SendMessageAsync(user.Id, "❌ Unknown game state.");
-                            break;
+                        // 🔹 상태에 따라 탐험 / 전투 전환
+                        var gameState = await GetPlayerGameStateAsync(user.Id);
+                        switch (gameState)
+                        {
+                            case "MainMenuState":
+                                break;
+                            case "ExplorationState":
+                                await ContiueExplorationAsync(user.Id);
+                                break;
+                            case "BattleState":
+                                await StartBattleAsync(user.Id);
+                                break;
+                            default:
+                                await SendMessageAsync(user.Id, "❌ Unknown game state.");
+                                break;
+                        }
                     }
-                }catch (UserErrorException e)
-                {
-                    log.LogUserError(e.Message);
+                    catch (UserErrorException e)
+                    {
+                        log.LogUserError(e.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        log.HandleException(e);
+                    }
                 }
-                catch(Exception e)
-                {
-                    log.HandleException(e);
-                }
-            }
+            });
         }
     }
 }
