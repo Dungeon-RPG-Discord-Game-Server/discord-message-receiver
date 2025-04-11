@@ -1,4 +1,3 @@
-# .github/workflows/deploy-discord-message-receiver.yml
 name: Build and Push DiscordMessageReceiver to ACR
 
 on:
@@ -22,11 +21,10 @@ jobs:
         username: ${{ secrets.ACR_USERNAME }}
         password: ${{ secrets.ACR_PASSWORD }}
 
-    - name: Build Docker image for DiscordMessageReceiver
+    - name: Build Docker image
       run: |
         docker build -t dlee930cs397registry.azurecr.io/discordmessagereceiver:latest \
-          -f DiscordMessageReceiver/Dockerfile ./DiscordMessageReceiver
+          -f DiscordMessageReceiver/Dockerfile .
 
-    - name: Push image to ACR
-      run: |
-        docker push dlee930cs397registry.azurecr.io/discordmessagereceiver:latest
+    - name: Push Docker image to ACR
+      run: docker push dlee930cs397registry.azurecr.io/discordmessagereceiver:latest
