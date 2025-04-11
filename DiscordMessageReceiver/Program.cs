@@ -29,7 +29,7 @@ builder.Configuration.AddAzureKeyVault(
 IConfiguration configuration = builder.Configuration;
 
 string? token = configuration["discord-bot-token"];
-string? gameServiceBaseUrl = Environment.GetEnvironmentVariable("GAME_SERVICE_BASE_URL");
+string? gameServiceBaseUrl = configuration["game-service-base-url"];
 
 string serviceName = configuration["Logging:ServiceName"];
 string serviceVersion = configuration["Logging:ServiceVersion"];
