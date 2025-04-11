@@ -10,17 +10,22 @@ namespace DiscordMessageReceiver.Services
     public class APIRequestWrapper
     {
         private readonly HttpClient _httpClient;
+        private readonly ApiKeyManager _apiKeyManager;
 
-        public APIRequestWrapper(HttpClient httpClient)
+        public APIRequestWrapper(HttpClient httpClient, ApiKeyManager apiKeyManager)
         {
-            _httpClient = httpClient;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _apiKeyManager = apiKeyManager ?? throw new ArgumentNullException(nameof(apiKeyManager));
         }
 
         public async Task<string?> PostAsync(string url)
         {
             try
             {
-                var response = await _httpClient.PostAsync(url, null);
+                var request = new HttpRequestMessage(HttpMethod.Post, url);
+                request.Headers.Add("X-API-KEY", await _apiKeyManager.GetValidApiKeyAsync());
+
+                var response = await _httpClient.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
                     var responseText = await response.Content.ReadAsStringAsync();
@@ -53,7 +58,15 @@ namespace DiscordMessageReceiver.Services
                     content = new StringContent("", Encoding.UTF8, "application/json");
                 }
 
-                var response = await _httpClient.PostAsync(url, content);
+                var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = content
+                };
+                request.Headers.Add("X-API-KEY", await _apiKeyManager.GetValidApiKeyAsync());
+                Console.WriteLine($"🔑 Request API Key: {request}");
+
+                var response = await _httpClient.SendAsync(request);
+                Console.WriteLine($"🔑 Request API Key: {response}");
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -75,7 +88,9 @@ namespace DiscordMessageReceiver.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync(url);
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("X-API-KEY", await _apiKeyManager.GetValidApiKeyAsync());
+                var response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -89,7 +104,7 @@ namespace DiscordMessageReceiver.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error in PostAsync: {ex.Message}");
+                throw new Exception($"Error in GetAsync: {ex.Message}");
             }
         }
 
@@ -100,7 +115,13 @@ namespace DiscordMessageReceiver.Services
                 var json = JsonSerializer.Serialize(payload);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var response = await _httpClient.PutAsync(url, content);
+                var request = new HttpRequestMessage(HttpMethod.Put, url)
+                {
+                    Content = content
+                };
+                request.Headers.Add("X-API-KEY", await _apiKeyManager.GetValidApiKeyAsync());
+
+                var response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -114,7 +135,7 @@ namespace DiscordMessageReceiver.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error in PostAsync: {ex.Message}");
+                throw new Exception($"Error in PutAsync: {ex.Message}");
             }
         }
 
@@ -122,7 +143,10 @@ namespace DiscordMessageReceiver.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync(url);
+                var request = new HttpRequestMessage(HttpMethod.Delete, url);
+                request.Headers.Add("X-API-KEY", await _apiKeyManager.GetValidApiKeyAsync());
+
+                var response = await _httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -136,7 +160,7 @@ namespace DiscordMessageReceiver.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error in PostAsync: {ex.Message}");
+                throw new Exception($"Error in DeleteAsync: {ex.Message}");
             }
         }
     }

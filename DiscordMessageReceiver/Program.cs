@@ -6,6 +6,7 @@ using Discord.Commands;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Caching.Memory;
 using DotNetEnv;
 
 using OpenTelemetry.Resources;
@@ -35,12 +36,20 @@ builder.Services.AddOpenTelemetry().WithTracing(tcb =>
     .AddAspNetCoreInstrumentation() // Automatically generate log lines for HTTP requests
     .AddJsonConsoleExporter(); // Output log lines to the console
 });
+builder.Services.AddMemoryCache();
 
 builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton<CommandService>();
 builder.Services.AddSingleton<IDiscordClientManager, DiscordClientManager>();
-builder.Services.AddSingleton<APIRequestWrapper>();
 builder.Services.AddSingleton<HttpClient>();
+builder.Services.AddSingleton<ApiKeyManager>(provider=>
+{
+    var cache = provider.GetRequiredService<IMemoryCache>();
+    var httpClient = provider.GetRequiredService<HttpClient>();
+    var url = gameServiceBaseUrl;
+    return new ApiKeyManager(cache, configuration, url, httpClient);
+});
+builder.Services.AddSingleton<APIRequestWrapper>();
 
 builder.Services.AddSingleton<BattleMessenger>(provider=>
 {

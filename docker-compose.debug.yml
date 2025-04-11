@@ -1,0 +1,16 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP.NET Core service.
+
+services:
+  discordmessagereceiver:
+    image: discordmessagereceiver
+    build:
+      context: .
+      dockerfile: DiscordMessageReceiver/Dockerfile
+      args:
+        - configuration=Debug
+    ports:
+      - 5048:5048
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
