@@ -1,26 +1,35 @@
-﻿using Discord.WebSocket;
-using DiscordMessageReceiver.Clients;
-using DiscordMessageReceiver.Services;
-using DiscordMessageReceiver.Services.Messengers;
+﻿using Microsoft.Extensions.Caching.Memory;
+
+using Discord.WebSocket;
 using Discord.Commands;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Caching.Memory;
+
 using DotNetEnv;
+
+using Azure.Identity;
 
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 using Telemetry.Trace;
 
+using DiscordMessageReceiver.Clients;
+using DiscordMessageReceiver.Services;
+using DiscordMessageReceiver.Services.Messengers;
+
 Env.Load();
-string? token = Environment.GetEnvironmentVariable("BOT_TOKEN");
-string? gameServiceBaseUrl = Environment.GetEnvironmentVariable("GAME_SERVICE_BASE_URL");
 
 var builder = WebApplication.CreateBuilder(args);
 
+var keyVaultUri = new Uri("https://vbn930-rpg-kv.vault.azure.net/");
+
+builder.Configuration.AddAzureKeyVault(
+    keyVaultUri,
+    new DefaultAzureCredential());
+
 IConfiguration configuration = builder.Configuration;
+
+string? token = configuration["discord-bot-token"];
+string? gameServiceBaseUrl = Environment.GetEnvironmentVariable("GAME_SERVICE_BASE_URL");
 
 string serviceName = configuration["Logging:ServiceName"];
 string serviceVersion = configuration["Logging:ServiceVersion"];
