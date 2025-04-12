@@ -50,31 +50,36 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public async Task LoadUserProgressAsync(ulong userId)
         {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + "saveload/" + userId.ToString() + "/load");
-            if (response == null)
-            {
-                throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Failed to load user progress");
-            }
+            var userExist = JsonSerializerWrapper.Deserialize<bool>(await _apiWrapper.GetAsync(_gameServiceBaseUrl + "saveload/" + userId.ToString() + "/load"));
+            string response = string.Empty;
 
-            var gameState = await GetPlayerGameStateAsync(userId);
-            if (gameState == null)
+            if (userExist)
             {
-                throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Failed to get player game state");
-            }
+                response = "✅ Your progress has been successfully loaded.";
+                var gameState = await GetPlayerGameStateAsync(userId);
+                if (gameState == null)
+                {
+                    throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Failed to get player game state");
+                }
 
-            switch (gameState)
+                switch (gameState)
+                {
+                    case "MainMenuState":
+                        await SendMainStateChoiceButtonsAsync(userId);
+                        break;
+                    case "ExplorationState":
+                        await ContiueExplorationAsync(userId);
+                        break;
+                    case "BattleState":
+                        await ContiueBattleAsync(userId);
+                        break;
+                    default:
+                        throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Unknown game state");
+                }
+            }else
             {
-                case "MainMenuState":
-                    await SendMainStateChoiceButtonsAsync(userId);
-                    break;
-                case "ExplorationState":
-                    await ContiueExplorationAsync(userId);
-                    break;
-                case "BattleState":
-                    await ContiueBattleAsync(userId);
-                    break;
-                default:
-                    throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Unknown game state");
+                response = "❌ Failed to load your progress. Please start a new game.";
+                await SendMainStateChoiceButtonsAsync(userId);
             }
 
             await SendMessageAsync(userId, response);
