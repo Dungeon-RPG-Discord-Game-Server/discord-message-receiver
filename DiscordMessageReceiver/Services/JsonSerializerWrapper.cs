@@ -21,7 +21,7 @@ namespace DiscordMessageReceiver.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"❌ failed to serialize JSON: {ex.Message}");
+                throw new Exception($"failed to serialize JSON: {ex.Message}");
             }
         }
 
@@ -29,7 +29,7 @@ namespace DiscordMessageReceiver.Services
         {
             if (string.IsNullOrWhiteSpace(json))
             {
-                throw new Exception("⚠️ JSON string is null or empty.");
+                throw new Exception("JSON string is null or empty.");
             }
 
             try
@@ -38,7 +38,7 @@ namespace DiscordMessageReceiver.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"❌ failed to deserialize JSON: {ex.Message}");
+                throw new Exception($"failed to deserialize JSON: {ex.Message}");
             }
         }
     }
