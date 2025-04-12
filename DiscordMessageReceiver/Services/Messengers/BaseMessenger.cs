@@ -27,6 +27,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/status");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(CheckUserIsAOnlineAsync)}: Failed to check user status");
             }
 
@@ -46,6 +47,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/summary");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(GetUserSummaryAsync)}: Failed to get user summary");
             }
 
@@ -63,6 +65,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(GetUserMapAsync)}: Failed to get user map");
             }
 
@@ -80,6 +83,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/summary");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(GetBattleSummaryAsync)}: Failed to get battle summary");
             }
 
@@ -97,6 +101,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"saveload/{userId}/save");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(SaveGameAsync)}: Failed to save game");
             }
 
@@ -114,6 +119,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"saveload/{userId}/load");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(LoadGameAsync)}: Failed to load game");
             }
 
@@ -126,7 +132,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             return loadGame;
         }
 
-        protected async Task SendMessageAsync(ulong userId, string message, ComponentBuilder? component=null, bool formatted=false)
+        protected async Task SendMessageAsync(ulong userId, string? message, ComponentBuilder? component=null, bool formatted=false)
         {
             // if (!await CheckUserIsAOnlineAsync(userId))
             // {
@@ -134,7 +140,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             // }
             var user = await _client.Rest.GetUserAsync(userId);
             string formattedMessage = message;
-            if (formatted)
+            if (formatted && message != null)
             {
                 formattedMessage = $"```\n{message}\n```";
             }
@@ -144,6 +150,15 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
 
             var dm = await user.CreateDMChannelAsync();
+            if(message == null)
+            {
+                message = $@"
+                🚫 You're not in a game right now!
+
+                🌟 Use `/start` to begin a new adventure or continue your journey
+                ".Trim();
+                await dm.SendMessageAsync(message);
+            }
 
             if (component == null)
             {
@@ -159,6 +174,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/state");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(GetPlayerGameStateAsync)}: Failed to get user game state");
             }
             var gameState = response;
@@ -174,6 +190,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(EnterDungeonAsync)}: Failed to enter dungeon");
             }
 
@@ -191,6 +208,12 @@ namespace DiscordMessageReceiver.Services.Messengers{
         public async Task ContiueExplorationAsync(ulong userId)
         {
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/neighbors");
+            if (response == null)
+            {
+                await SendMessageAsync(userId, null);
+                throw new UserErrorException($"{nameof(ContiueExplorationAsync)}: Failed to get user map directions");
+            }
+            
             var directions = JsonSerializerWrapper.Deserialize<string[]>(response);
             if (directions == null || directions.Length == 0)
             {

@@ -41,6 +41,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(UserRegisterAsync)}: Failed to register user");
             }
             var status = JsonSerializerWrapper.Deserialize<RegisterPlayerResponseDto>(response);
@@ -56,6 +57,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             if (userExist)
             {
                 response = "✅ Your progress has been successfully loaded.";
+                await SendMessageAsync(userId, response);
                 var gameState = await GetPlayerGameStateAsync(userId);
                 if (gameState == null)
                 {
@@ -79,10 +81,9 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }else
             {
                 response = "❌ Failed to load your progress. Please start a new game.";
+                await SendMessageAsync(userId, response);
                 await SendMainStateChoiceButtonsAsync(userId);
             }
-
-            await SendMessageAsync(userId, response);
         }
 
         public async Task SendUserRegisterAsync(ulong userId)

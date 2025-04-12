@@ -50,6 +50,7 @@ namespace DiscordMessageReceiver.Commands
             string? response = await _gameProgressMessenger.SaveGameAsync(Context.User.Id);
             if (response!=null)
             {
+                response = "✅ Your progress has been successfully saved.";
                 await ReplyAsync(response);
                 return;
             }else

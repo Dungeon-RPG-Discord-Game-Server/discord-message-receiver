@@ -33,6 +33,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"game/{request.UserId}/move", request);
                 if (response == null)
                 {
+                    await SendMessageAsync(ulong.Parse(request.UserId), null);
                     throw new UserErrorException($"{nameof(MovePlayerAsync)}: Failed to move player");
                 }
             }

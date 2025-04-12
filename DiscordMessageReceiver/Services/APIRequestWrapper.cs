@@ -33,7 +33,7 @@ namespace DiscordMessageReceiver.Services
                 }
                 else
                 {
-                    throw new Exception($"POST request failed: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+                    return null;
                 }
             }
             catch (Exception ex)
@@ -73,7 +73,7 @@ namespace DiscordMessageReceiver.Services
                 }
                 else
                 {
-                    throw new Exception($"POST request failed: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+                    return null;
                 }
             }
             catch (Exception ex)
@@ -97,7 +97,7 @@ namespace DiscordMessageReceiver.Services
                 }
                 else
                 {
-                    throw new Exception($"GET request failed: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+                    return null;
                 }
             }
             catch (Exception ex)
@@ -128,7 +128,7 @@ namespace DiscordMessageReceiver.Services
                 }
                 else
                 {
-                    throw new Exception($"PUT request failed: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+                    return null;
                 }
             }
             catch (Exception ex)
@@ -153,7 +153,7 @@ namespace DiscordMessageReceiver.Services
                 }
                 else
                 {
-                    throw new Exception($"DELETE request failed: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+                    return null;
                 }
             }
             catch (Exception ex)

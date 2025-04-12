@@ -32,6 +32,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/boss");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(BossClearedAsync)}: Failed to check boss cleared status");
             }
 
@@ -44,6 +45,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/monster");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(MonsterExistsAsync)}: Failed to check monster existence");
             }
 
@@ -57,6 +59,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"battle/{userId}/attack?skillUsed={skillUsed.ToString().ToLower()}");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(AttackAsync)}: Failed to attack");
             }
 
@@ -74,6 +77,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/monster-attack");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(MonsterAttackAsync)}: Failed to get monster attack result");
             }
 
@@ -91,6 +95,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"battle/{userId}/run");
             if (response == null)
             {
+                await SendMessageAsync(userId, null);
                 throw new UserErrorException($"{nameof(RunAwayAsync)}: Failed to run away");
             }
 
