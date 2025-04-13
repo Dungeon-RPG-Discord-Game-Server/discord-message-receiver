@@ -32,12 +32,11 @@ IConfiguration configuration = builder.Configuration;
 
 string? token = configuration["discord-bot-token"];
 string? gameServiceBaseUrl = configuration["game-service-base-url"];
-gameServiceBaseUrl = "http://localhost:5048/api/";
+
 if (builder.Environment.IsDevelopment())
 {
     gameServiceBaseUrl = "https://localhost:5048/api/";
 }
-Console.WriteLine($"Game Service Base URL: {gameServiceBaseUrl}");
 
 string serviceName = configuration["Logging:ServiceName"];
 string serviceVersion = configuration["Logging:ServiceVersion"];
