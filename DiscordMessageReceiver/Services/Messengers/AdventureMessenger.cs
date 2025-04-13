@@ -1,10 +1,5 @@
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 using DiscordMessageReceiver.Dtos;
 using DiscordMessageReceiver.Utils;
@@ -43,12 +38,9 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
         }
 
-        /// <summary>
-        /// 버튼 클릭 시 호출되는 이벤트 핸들러
-        /// </summary>
         public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
-            await interaction.DeferAsync(); // 🔹 응답 예약 (즉시 처리)
+            await interaction.DeferAsync();
 
             _ = Task.Run(async () =>
             {
@@ -78,7 +70,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                             msg.Components = new ComponentBuilder().Build();
                         });
 
-                        // 🔹 이동 요청
                         if (customId.StartsWith("adventure_"))
                         {
                             string direction = customId.Replace("adventure_", "");
@@ -90,7 +81,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                             await MovePlayerAsync(moveRequest);
                         }
 
-                        // 🔹 상태에 따라 탐험 / 전투 전환
                         var gameState = await GetPlayerGameStateAsync(user.Id);
                         switch (gameState)
                         {

@@ -11,14 +11,12 @@ using DiscordMessageReceiver.Services.Messengers;
 
 namespace DiscordMessageReceiver.Commands
 {
-    // 게임 전용 커맨드 모듈: 게임 진행을 위한 커맨드 모듈 (모든 커맨드는 DM을 통해서만 입력받음)
     public class GameModule : ModuleBase<SocketCommandContext>
     {
         private readonly GameProgressMessenger _gameProgressMessenger;
         private readonly AdventureMessenger _adventureMessenger;
         private readonly BattleMessenger _battleMessenger;
 
-        // 생성자를 통해 DI 주입
         public GameModule(GameProgressMessenger gameProgressMessenger, AdventureMessenger adventureMessenger, BattleMessenger battleMessenger)
         {
             _gameProgressMessenger = gameProgressMessenger;
@@ -27,24 +25,24 @@ namespace DiscordMessageReceiver.Commands
         }
 
         [Command("game")]
-        [Summary("게임을 시작하기 위해 사용자에게 DM을 전송합니다.")]
+        [Summary("Send a DM to the user to start the game.")]
         public async Task OpenDMAsync()
         {
             var dmChannel = await Context.User.CreateDMChannelAsync();
             
-            await dmChannel.SendMessageAsync("게임을 시작합니다.");
-            await ReplyAsync("게임을 위한 DM을 전송 하였습니다. !register 명령어를 이용해 게임을 시작하세요.");
+            await dmChannel.SendMessageAsync("⚔️ Your journey begins! Type !start to enter the world of adventure! 🌍");
+            await ReplyAsync("💌 Check your DMs! Your journey begins there.");
         }
 
         [Command("start")]
-        [Summary("게임을 시작합니다.")]
+        [Summary("Start the game.")]
         public async Task StartGameAsync()
         {
             await _gameProgressMessenger.StartMainStateAsync(Context.User.Id);
         }
 
         [Command("save")]
-        [Summary("게임을 저장합니다.")]
+        [Summary("Save the game progress.")]
         public async Task SaveGameAsync()
         {
             string? response = await _gameProgressMessenger.SaveGameAsync(Context.User.Id);
@@ -55,48 +53,9 @@ namespace DiscordMessageReceiver.Commands
                 return;
             }else
             {
-                await ReplyAsync("게임 서비스와 연결할 수 없습니다.");
+                await ReplyAsync("⚠️ Unable to connect to the game service. Please try again later.");
                 return;
             }
-        }
-
-        [Command("load")]
-        [Summary("게임을 불러옵니다.")]
-        public async Task LoadGameAsync()
-        {
-            string? response = await _gameProgressMessenger.LoadGameAsync(Context.User.Id);
-            if (response!=null)
-            {
-                await ReplyAsync(response);
-                return;
-            }else
-            {
-                await ReplyAsync("게임 서비스와 연결할 수 없습니다.");
-                return;
-            }
-        }
-
-        [Command("summary")]
-        [Summary("게임을 시작합니다.")]
-        public async Task UserSummaryAsync()
-        {
-            string? response = await _gameProgressMessenger.GetUserSummaryAsync(Context.User.Id);
-            if (response!=null)
-            {
-                await ReplyAsync(response);
-                return;
-            }else
-            {
-                await ReplyAsync("게임 서비스와 연결할 수 없습니다.");
-                return;
-            }
-        }
-
-        [Command("register")]
-        [Summary("게임 서비스에 유저를 등록합니다.")]
-        public async Task RegisterAsync()
-        {
-            await _gameProgressMessenger.SendUserRegisterAsync(Context.User.Id);
         }
     }
 }

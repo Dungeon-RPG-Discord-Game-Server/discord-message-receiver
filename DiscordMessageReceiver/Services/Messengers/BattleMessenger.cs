@@ -1,14 +1,8 @@
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 using DiscordMessageReceiver.Dtos;
 using DiscordMessageReceiver.Utils;
-using DiscordMessageReceiver.Services;
 
 namespace DiscordMessageReceiver.Services.Messengers{
     public class BattleMessenger : BaseMessenger
@@ -108,9 +102,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
             return result;
         }
 
-        /// <summary>
-        /// 유저에게 버튼이 포함된 공격 타입입 선택지 메시지를 DM으로 보냅니다.
-        /// </summary>
         public async Task SendAttackChoiceButtonsAsync(ulong userId)
         {
             await SendMessageAsync(userId, "⚔️ What type of attack would you like to use?", new ComponentBuilder()
@@ -118,12 +109,9 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("✨ Skill Attack", "battle_skill_attack", ButtonStyle.Success));
         }
 
-        /// <summary>
-        /// 버튼 클릭 시 호출되는 이벤트 핸들러
-        /// </summary>
         public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
-            await interaction.DeferAsync(); // 💡 먼저 Discord에 "응답 예정" 알리기
+            await interaction.DeferAsync();
 
             _ = Task.Run(async () =>
             {
@@ -150,7 +138,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                         await interaction.ModifyOriginalResponseAsync(msg =>
                         {
                             msg.Content = content;
-                            msg.Components = new ComponentBuilder().Build(); // 버튼 제거
+                            msg.Components = new ComponentBuilder().Build();
                         });
 
                         string result = string.Empty;

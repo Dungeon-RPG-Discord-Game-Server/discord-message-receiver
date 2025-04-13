@@ -1,13 +1,7 @@
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 using DiscordMessageReceiver.Dtos;
-using DiscordMessageReceiver.Services;
 using DiscordMessageReceiver.Utils;
 
 namespace DiscordMessageReceiver.Services.Messengers{
@@ -134,10 +128,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         protected async Task SendMessageAsync(ulong userId, string? message, ComponentBuilder? component=null, bool formatted=false)
         {
-            // if (!await CheckUserIsAOnlineAsync(userId))
-            // {
-            //     return;
-            // }
             var user = await _client.Rest.GetUserAsync(userId);
             string formattedMessage = message;
             if (formatted && message != null)
@@ -248,9 +238,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
             await SendMessageAsync(userId, "🏰 **Choose a room to enter:**\nSelect one of the available rooms below.", component);
         }
 
-        /// <summary>
-        /// 유저에게 버튼이 포함된 배틀 상태 선택지 메시지를 DM으로 보냅니다.
-        /// </summary>
         public async Task ContiueBattleAsync(ulong userId)
         {
             await SendMessageAsync(userId, await GetBattleSummaryAsync(userId));
@@ -294,7 +281,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
         }
 
         public virtual Task OnButtonExecutedAsync(SocketMessageComponent interaction){
-            // 기본 동작 또는 비워도 됨
             return Task.CompletedTask;
         }
     }

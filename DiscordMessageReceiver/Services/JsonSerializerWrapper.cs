@@ -9,7 +9,7 @@ namespace DiscordMessageReceiver.Services
         private static readonly JsonSerializerOptions _options = new()
         {
             PropertyNameCaseInsensitive = true,
-            WriteIndented = false, // 필요 시 true 로 설정
+            WriteIndented = false,
             Converters = { new JsonStringEnumConverter() }
         };
 

@@ -1,13 +1,6 @@
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-using DiscordMessageReceiver.Services;
 using DiscordMessageReceiver.Dtos;
 using DiscordMessageReceiver.Utils;
 
@@ -88,15 +81,11 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public async Task SendUserRegisterAsync(ulong userId)
         {
-            //TODO: 유저가 이미 등록되어 있는지 확인하는 로직 추가
             await SendMessageAsync(userId, "⚔️ Choose your weapon:", new ComponentBuilder()
                 .WithButton("🗡️ Sword", "game_sword", ButtonStyle.Primary)
                 .WithButton("🪄 MagicWand", "game_wand", ButtonStyle.Success));
         }
 
-        /// <summary>
-        /// 유저에게 버튼이 포함된 메인 메뉴 선택지 메시지를 DM으로 보냅니다.
-        /// </summary>
         public async Task SendMainStateChoiceButtonsAsync(ulong userId)
         {
             await SendMessageAsync(userId, "🎮 What would you like to do?", new ComponentBuilder()
@@ -104,10 +93,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("🆕 New Game", "game_new_game", ButtonStyle.Success)
                 .WithButton("🛑 Quit Game", "game_quit_game", ButtonStyle.Danger));
         }
-
-        /// <summary>
-        /// 버튼 클릭 시 호출되는 이벤트 핸들러
-        /// </summary>
         public override async Task OnButtonExecutedAsync(SocketMessageComponent interaction)
         {
             using (var log = _logger.StartMethod(nameof(OnButtonExecutedAsync)))
@@ -117,7 +102,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                     var user = interaction.User;
                     var customId = interaction.Data.CustomId;
 
-                    // ⏱ 먼저 응답 지연 처리
                     await interaction.DeferAsync();
 
                     log.SetAttribute("button.type", nameof(GameProgressMessenger));
