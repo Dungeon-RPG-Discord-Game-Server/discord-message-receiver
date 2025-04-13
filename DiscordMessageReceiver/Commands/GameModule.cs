@@ -24,14 +24,20 @@ namespace DiscordMessageReceiver.Commands
             _battleMessenger = battleMessenger;
         }
 
-        [Command("game")]
-        [Summary("Send a DM to the user to start the game.")]
-        public async Task OpenDMAsync()
+        [Command("help")]
+        [Summary("Provides help information for game commands.")]
+        public async Task HelpAsync()
         {
-            var dmChannel = await Context.User.CreateDMChannelAsync();
-            
-            await dmChannel.SendMessageAsync("⚔️ Your journey begins! Type !start to enter the world of adventure! 🌍");
-            await ReplyAsync("💌 Check your DMs! Your journey begins there.");
+            var embed = new EmbedBuilder()
+                .WithTitle("📜 RPG Game Command Help")
+                .WithDescription("Here are the available commands to guide your adventure:")
+                .WithColor(Color.Blue)
+                .AddField("`!start`", "⚔️ Starts a new game. Use this command to begin a new adventure or continue from a saved game.")
+                .AddField("`!save`", "💾 Saves your current game progress. Use this to **permanently store** your adventure state.")
+                .AddField("`!help`", "📖 Displays this help message.")
+                .WithFooter("Good luck on your journey, adventurer!");
+
+            await ReplyAsync(embed: embed.Build());
         }
 
         [Command("start")]

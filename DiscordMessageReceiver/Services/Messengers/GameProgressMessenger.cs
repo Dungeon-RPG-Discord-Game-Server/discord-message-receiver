@@ -44,13 +44,18 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public async Task LoadUserProgressAsync(ulong userId)
         {
-            var userExist = JsonSerializerWrapper.Deserialize<bool>(await _apiWrapper.GetAsync(_gameServiceBaseUrl + "saveload/" + userId.ToString() + "/load"));
-            string response = string.Empty;
-
+            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + "saveload/" + userId.ToString() + "/load");
+            if (response == null)
+            {
+                await SendMessageAsync(userId, null);
+                throw new UserErrorException($"{nameof(LoadUserProgressAsync)}: Failed to load user progress");
+            }
+            var userExist = JsonSerializerWrapper.Deserialize<bool>(response);
+            string message = string.Empty;
             if (userExist)
             {
-                response = "✅ Your progress has been successfully loaded.";
-                await SendMessageAsync(userId, response);
+                message = "✅ Your progress has been successfully loaded.";
+                await SendMessageAsync(userId, message);
                 var gameState = await GetPlayerGameStateAsync(userId);
                 if (gameState == null)
                 {
@@ -73,8 +78,8 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 }
             }else
             {
-                response = "❌ Failed to load your progress. Please start a new game.";
-                await SendMessageAsync(userId, response);
+                message = "❌ Failed to load your progress. Please start a new game.";
+                await SendMessageAsync(userId, message);
                 await SendMainStateChoiceButtonsAsync(userId);
             }
         }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
+using Discord.Interactions;
 using System.Reflection;
 
 using DiscordMessageReceiver.Utils;
@@ -13,6 +14,7 @@ namespace DiscordMessageReceiver.Clients
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
+        private readonly InteractionService _interactions;
         private readonly IServiceProvider _services;
         private readonly IConfiguration _configuration;
         private readonly Logger _logger;
@@ -20,11 +22,13 @@ namespace DiscordMessageReceiver.Clients
         public DiscordClientManager(
             DiscordSocketClient client,
             CommandService commands,
+            InteractionService interactions,
             IServiceProvider services,
             IConfiguration configuration)
         {
             _client = client;
             _commands = commands;
+            _interactions = interactions;
             _services = services;
             _configuration = configuration;
             if (null == _configuration)
@@ -37,11 +41,36 @@ namespace DiscordMessageReceiver.Clients
 
             _client.Log += LogAsync;
             _client.MessageReceived += MessageReceivedAsync;
+            _client.Ready += ReadyAsync;
+            _client.InteractionCreated += HandleInteractionAsync;
         }
 
         public async Task InitClientAsync()
         {
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+            await _interactions.AddModulesAsync(Assembly.GetEntryAssembly(), _services);
+        }
+        private async Task ReadyAsync()
+        {
+            await _interactions.RegisterCommandsGloballyAsync(true);
+        }
+
+        private async Task HandleInteractionAsync(SocketInteraction interaction)
+        {
+            using var log = _logger.StartMethod(nameof(HandleInteractionAsync));
+            try
+            {
+                var context = new SocketInteractionContext(_client, interaction);
+                await _interactions.ExecuteCommandAsync(context, _services);
+            }
+            catch (Exception ex)
+            {
+                log.HandleException(ex);
+                if (interaction.Type == InteractionType.ApplicationCommand)
+                {
+                    await interaction.RespondAsync("⚠️ 슬래시 명령어 처리 중 오류가 발생했습니다.", ephemeral: true);
+                }
+            }
         }
 
         public async Task StartClientAsync(string token)
@@ -86,7 +115,7 @@ namespace DiscordMessageReceiver.Clients
                     var result = await _commands.ExecuteAsync(context, argPos, _services);
                     if (!result.IsSuccess)
                     {
-                        await context.Channel.SendMessageAsync(result.ErrorReason);
+                        log.SetAttribute("client.error", result.ErrorReason);
                     }
                 }
                 catch (UserErrorException e)

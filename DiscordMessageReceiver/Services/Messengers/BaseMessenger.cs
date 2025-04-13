@@ -99,13 +99,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 throw new UserErrorException($"{nameof(SaveGameAsync)}: Failed to save game");
             }
 
-            var saveGame = response;
-            if (saveGame == null)
-            {
-                throw new UserErrorException($"{nameof(SaveGameAsync)}: Failed to save game");
-            }
-
-            return saveGame;
+            return response;
         }
 
         public async Task<string> LoadGameAsync(ulong userId)
@@ -145,9 +139,10 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 message = $@"
                 🚫 You're not in a game right now!
 
-                🌟 Use `/start` to begin a new adventure or continue your journey
+                🌟 Use `!start` to begin a new adventure or continue your journey
                 ".Trim();
                 await dm.SendMessageAsync(message);
+                return;
             }
 
             if (component == null)

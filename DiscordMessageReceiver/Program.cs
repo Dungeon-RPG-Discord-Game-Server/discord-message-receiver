@@ -1,7 +1,9 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 
+using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
+using Discord.Interactions;
 
 using DotNetEnv;
 
@@ -30,6 +32,12 @@ IConfiguration configuration = builder.Configuration;
 
 string? token = configuration["discord-bot-token"];
 string? gameServiceBaseUrl = configuration["game-service-base-url"];
+gameServiceBaseUrl = "http://localhost:5048/api/";
+if (builder.Environment.IsDevelopment())
+{
+    gameServiceBaseUrl = "https://localhost:5048/api/";
+}
+Console.WriteLine($"Game Service Base URL: {gameServiceBaseUrl}");
 
 string serviceName = configuration["Logging:ServiceName"];
 string serviceVersion = configuration["Logging:ServiceVersion"];
@@ -46,8 +54,16 @@ builder.Services.AddOpenTelemetry().WithTracing(tcb =>
 });
 builder.Services.AddMemoryCache();
 
-builder.Services.AddSingleton<DiscordSocketClient>();
+builder.Services.AddSingleton(new DiscordSocketClient(new DiscordSocketConfig
+{
+    GatewayIntents = 
+        GatewayIntents.Guilds |
+        GatewayIntents.GuildMessages |
+        GatewayIntents.DirectMessages |
+        GatewayIntents.MessageContent
+}));
 builder.Services.AddSingleton<CommandService>();
+builder.Services.AddSingleton<InteractionService>();
 builder.Services.AddSingleton<IDiscordClientManager, DiscordClientManager>();
 builder.Services.AddSingleton<HttpClient>();
 builder.Services.AddSingleton<ApiKeyManager>(provider=>
