@@ -21,12 +21,12 @@ namespace DiscordMessageReceiver.Services.Messengers{
             _logger = new Logger(serviceName);
         }
 
-        public async Task UserRegisterAsync(ulong userId, int weaponType)
+        public async Task UserRegisterAsync(ulong userId, string userName, int weaponType)
         {
             var initialPlayerData = new RegisterPlayerRequestDto
             {
                 UserId = userId.ToString(),
-                Name = userId.ToString(),
+                Name = userName,
                 WeaponType = weaponType
             };
 
@@ -39,7 +39,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
             var status = JsonSerializerWrapper.Deserialize<RegisterPlayerResponseDto>(response);
 
-            await SendMessageAsync(userId, status.Message);
+            await SendEmbededMessageAsync(userId, "🎉 Registration Complete!", status.Message, Color.Blue);
         }
 
         public async Task LoadUserProgressAsync(ulong userId)
@@ -91,6 +91,16 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 .WithButton("🪄 MagicWand", "game_wand", ButtonStyle.Success));
         }
 
+        public async Task QuitGameAsync(ulong userId)
+        {
+            var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + "game/" + userId.ToString() + "/quit");
+            if (response == null)
+            {
+                await SendMessageAsync(userId, null);
+                throw new UserErrorException($"{nameof(QuitGameAsync)}: Failed to quit game");
+            }
+        }
+
         public async Task SendMainStateChoiceButtonsAsync(ulong userId)
         {
             await SendMessageAsync(userId, "🎮 What would you like to do?", new ComponentBuilder()
@@ -136,11 +146,11 @@ namespace DiscordMessageReceiver.Services.Messengers{
                             switch (customId)
                             {
                                 case "game_sword":
-                                    await UserRegisterAsync(user.Id, 0);
+                                    await UserRegisterAsync(user.Id, user.Username, 0);
                                     await EnterDungeonAsync(user.Id);
                                     break;
                                 case "game_wand":
-                                    await UserRegisterAsync(user.Id, 1);
+                                    await UserRegisterAsync(user.Id, user.Username, 1);
                                     await EnterDungeonAsync(user.Id);
                                     break;
                                 case "game_new_game":
@@ -150,6 +160,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                                     await LoadUserProgressAsync(user.Id);
                                     break;
                                 case "game_quit_game":
+                                    await QuitGameAsync(user.Id);
                                     break;
                             }
                         }

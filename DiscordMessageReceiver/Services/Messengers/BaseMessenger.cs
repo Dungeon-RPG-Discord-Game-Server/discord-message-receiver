@@ -119,7 +119,22 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
             return loadGame;
         }
+        protected Embed FormatEmbed(string title, string multiline, Color? color = null)
+        {
+            return new EmbedBuilder()
+                .WithTitle(title)
+                .WithDescription(multiline.Trim())
+                .WithColor(color ?? Color.DarkGreen)
+                .Build();
+        }
 
+        protected async Task SendEmbededMessageAsync(ulong userId, string title, string multiline, Color? color = null)
+        {
+            var user = await _client.Rest.GetUserAsync(userId);
+            var dm = await user.CreateDMChannelAsync();
+            var embed = FormatEmbed(title, multiline, color);
+            await dm.SendMessageAsync(embed: embed);
+        }
         protected async Task SendMessageAsync(ulong userId, string? message, ComponentBuilder? component=null, bool formatted=false)
         {
             var user = await _client.Rest.GetUserAsync(userId);
@@ -141,7 +156,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
                 🌟 Use `!start` to begin a new adventure or continue your journey
                 ".Trim();
-                await dm.SendMessageAsync(message);
+                await SendEmbededMessageAsync(userId, "🚫 No Game Found", message, Color.DarkRed);
                 return;
             }
 
@@ -186,7 +201,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             }
 
             await SendMessageAsync(userId, dungeon);
-            await SendMessageAsync(userId, await GetUserSummaryAsync(userId));
+            await SendEmbededMessageAsync(userId, "⚔️ Hero's Profile", await GetUserSummaryAsync(userId), Color.DarkBlue);
             await StartExplorationAsync(userId);
         }
 
@@ -235,7 +250,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public async Task ContiueBattleAsync(ulong userId)
         {
-            await SendMessageAsync(userId, await GetBattleSummaryAsync(userId));
+            await SendEmbededMessageAsync(userId, "⚔️ Battle Status", await GetBattleSummaryAsync(userId), Color.DarkBlue);
             await SendMessageAsync(userId, "⚔️ What would you like to do?", new ComponentBuilder()
                 .WithButton("⚔ Attack", "battle_attack", ButtonStyle.Primary)
                 .WithButton("🏃 Run", "battle_run", ButtonStyle.Danger));
@@ -259,7 +274,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
             🗺️ Your adventure begins now!
             ".Trim();
-            await SendMessageAsync(userId, message);
+            await SendEmbededMessageAsync(userId, "🏰 Dungeon Entrance", message, Color.DarkBlue);
             await ContiueExplorationAsync(userId);
         }
 
@@ -271,7 +286,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
             It blocks your path with a menacing glare...  
             Prepare for battle!
             ".Trim();
-            await SendMessageAsync(userId, message);
+            await SendEmbededMessageAsync(userId, "💀 From the Shadows, a Monster Emerges", message, Color.DarkOrange);
             await ContiueBattleAsync(userId);
         }
 

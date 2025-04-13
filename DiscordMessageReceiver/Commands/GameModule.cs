@@ -32,7 +32,7 @@ namespace DiscordMessageReceiver.Commands
                 .WithTitle("📜 RPG Game Command Help")
                 .WithDescription("Here are the available commands to guide your adventure:")
                 .WithColor(Color.Blue)
-                .AddField("`!start`", "⚔️ Starts a new game. Use this command to begin a new adventure or continue from a saved game.")
+                .AddField("`!menu`", "⚔️ Starts a new game. Use this command to begin a new adventure or continue from a saved game.")
                 .AddField("`!save`", "💾 Saves your current game progress. Use this to **permanently store** your adventure state.")
                 .AddField("`!help`", "📖 Displays this help message.")
                 .WithFooter("Good luck on your journey, adventurer!");
@@ -40,7 +40,7 @@ namespace DiscordMessageReceiver.Commands
             await ReplyAsync(embed: embed.Build());
         }
 
-        [Command("start")]
+        [Command("menu")]
         [Summary("Start the game.")]
         public async Task StartGameAsync()
         {

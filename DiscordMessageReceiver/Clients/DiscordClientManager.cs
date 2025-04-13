@@ -68,7 +68,7 @@ namespace DiscordMessageReceiver.Clients
                 log.HandleException(ex);
                 if (interaction.Type == InteractionType.ApplicationCommand)
                 {
-                    await interaction.RespondAsync("⚠️ 슬래시 명령어 처리 중 오류가 발생했습니다.", ephemeral: true);
+                    await interaction.RespondAsync("⚠️ An error occurred while processing a slash instruction.", ephemeral: true);
                 }
             }
         }
@@ -87,11 +87,12 @@ namespace DiscordMessageReceiver.Clients
             await _client.StopAsync();
         }
 
-        private async Task LogAsync(LogMessage logMessage)
+        private Task LogAsync(LogMessage logMessage)
         {
             var log = _logger.StartMethod(nameof(LogAsync));
             log.SetAttribute("client.log", logMessage.ToString());
             log.Dispose();
+            return Task.CompletedTask;
         }
 
         private async Task MessageReceivedAsync(SocketMessage messageParam)

@@ -173,11 +173,12 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
                         if (customId != "battle_attack")
                         {
-                            await SendMessageAsync(user.Id, result);
+                            await SendEmbededMessageAsync(user.Id, "🎯 You Aim and Attack!", result, Color.Blue);
 
                             if (monsterAttack)
                             {
                                 monsterAttackResult = await MonsterAttackAsync(user.Id);
+                                await SendEmbededMessageAsync(user.Id, "🩸 The Beast Leaves Its Mark.", monsterAttackResult, Color.Red);
                                 await SendMessageAsync(user.Id, monsterAttackResult);
                             }
 
@@ -190,7 +191,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                                     You fall, but legends never die.  
                                     🌟 A new destiny awaits — your story starts again.
                                     ".Trim();
-                                    await SendMessageAsync(user.Id, message);
+                                    await SendEmbededMessageAsync(user.Id, "☠️ You Died", message, Color.DarkRed);
                                     await StartMainStateAsync(user.Id);
                                     break;
                                 case "ExplorationState":
