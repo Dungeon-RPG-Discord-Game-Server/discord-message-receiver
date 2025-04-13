@@ -179,7 +179,6 @@ namespace DiscordMessageReceiver.Services.Messengers{
                             {
                                 monsterAttackResult = await MonsterAttackAsync(user.Id);
                                 await SendEmbededMessageAsync(user.Id, "🩸 The Beast Leaves Its Mark.", monsterAttackResult, Color.Red);
-                                await SendMessageAsync(user.Id, monsterAttackResult);
                             }
 
                             var gameState = await GetPlayerGameStateAsync(user.Id);

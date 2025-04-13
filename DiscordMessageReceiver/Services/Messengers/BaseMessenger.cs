@@ -281,7 +281,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
         public async Task StartBattleAsync(ulong userId)
         {
             string message = $@"
-            ⚠️ A wild 🐉 monster appears!
+            ⚠️ A wild 🐉 **monster** appears!
 
             It blocks your path with a menacing glare...  
             Prepare for battle!
