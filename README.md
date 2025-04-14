@@ -1,11 +1,11 @@
-# 💬 DiscordMessageReceiver
+# DiscordMessageReceiver
 
 DiscordMessageReceiver is the **Discord interaction layer** for a turn-based text RPG.  
 This service handles Discord messages and buttons, translates them into HTTP requests, and communicates with the backend **GameStateService** through secured API calls.
 
 Built with **.NET 8** and **Discord.NET**, this service is containerized and deployed via **Azure Container Apps**, with full observability and performance optimizations.
 
-## ⚙️ Technologies Used
+## ⚙Technologies Used
 
 - **.NET 8** – Discord bot and HTTP client
 - **Discord.NET** – Handles commands, buttons, and DM messages
@@ -16,7 +16,7 @@ Built with **.NET 8** and **Discord.NET**, this service is containerized and dep
 - **OpenTelemetry** – Distributed tracing across bot and game server
 - **GitHub Actions** – CI/CD pipeline for Docker image and Azure push
 
-## 🔑 Authentication Flow
+## Authentication Flow
 
 - On startup, fetch **permanent Admin API Key** from Key Vault
 - Request a **temporary API Key** from GameStateService
@@ -24,7 +24,7 @@ Built with **.NET 8** and **Discord.NET**, this service is containerized and dep
 - All game-related API calls use this key
 - When key expires or is invalid → re-request from server
 
-## 📌 Features
+## Features
 
 - Supports both **prefix commands (!menu, !save)** and **slash commands (/start)**
 - All gameplay interactions handled via Discord **DMs**
@@ -35,26 +35,26 @@ Built with **.NET 8** and **Discord.NET**, this service is containerized and dep
 All interactions are translated to HTTP requests using `HttpClient`.
 
 
-## 🔐 Security
+## Security
 
 - Uses **API Key-based auth** for lightweight, secure communication
 - All keys issued via secured **Key Vault + cache** structure
 - Invalid keys rejected with proper status
 
-## 🎯 Design Principles
+## Design Principles
 
 - Fully stateless
 - Optimized for latency and cost
 - Graceful error handling for all Discord interactions
 - Designed for extensibility and future feature modules
 
-## 🔥 Performance Optimizations
+## Performance Optimizations
 
 - API call time reduced from 200-300ms → **1~2ms** via local cache
 - All commands are **non-blocking** and respond instantly
 - Lightweight bot service with minimal external dependency
 
-## 🚀 Deployment
+## Deployment
 
 1. Containerized with Docker
 2. GitHub Actions builds and pushes to ACR
