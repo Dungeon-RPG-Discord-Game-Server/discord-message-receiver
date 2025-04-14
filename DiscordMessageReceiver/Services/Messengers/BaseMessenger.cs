@@ -154,7 +154,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
                 message = $@"
                 🚫 You're not in a game right now!
 
-                🌟 Use `!start` to begin a new adventure or continue your journey
+                🌟 Use `!menu` to begin a new adventure or continue your journey
                 ".Trim();
                 await SendEmbededMessageAsync(userId, "🚫 No Game Found", message, Color.DarkRed);
                 return;
