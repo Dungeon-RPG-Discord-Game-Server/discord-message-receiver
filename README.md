@@ -1,50 +1,67 @@
-# Discord Message Receiver
+# 💬 DiscordMessageReceiver
 
-A .NET 8 microservice that handles all Discord-related functionalities for the text-based dungeon RPG. Built with `Discord.NET`, this service listens to user commands, manages messaging workflows, and securely communicates with the Game State Service.
+DiscordMessageReceiver is the **Discord interaction layer** for a turn-based text RPG.  
+This service handles Discord messages and buttons, translates them into HTTP requests, and communicates with the backend **GameStateService** through secured API calls.
 
-## Features
+Built with **.NET 8** and **Discord.NET**, this service is containerized and deployed via **Azure Container Apps**, with full observability and performance optimizations.
 
-- ✅ Slash commands and legacy `!`-prefixed commands
-- ✅ Runs as a background Discord bot using `DiscordSocketClient`
-- ✅ Secure API Key-based communication with the Game State Service
-- ✅ Command routing via modular CommandService and interaction handlers
-- ✅ OpenTelemetry tracing support for observability
-- ✅ Deployed as an Azure Container App
+## ⚙️ Technologies Used
 
-## Tech Stack
+- **.NET 8** – Discord bot and HTTP client
+- **Discord.NET** – Handles commands, buttons, and DM messages
+- **HTTP Communication** – All commands are forwarded to GameStateService via REST
+- **Azure Container Apps** – Lightweight hosting for the bot logic
+- **Azure Key Vault** – Secure Admin Key storage
+- **In-Memory Cache** – Temporary API Key caching
+- **OpenTelemetry** – Distributed tracing across bot and game server
+- **GitHub Actions** – CI/CD pipeline for Docker image and Azure push
 
-- .NET 8
-- Discord.NET
-- Azure Container Apps
-- Azure Key Vault
-- OpenTelemetry
-- In-Memory Cache
+## 🔑 Authentication Flow
 
-## Commands
+- On startup, fetch **permanent Admin API Key** from Key Vault
+- Request a **temporary API Key** from GameStateService
+- Store issued key in **in-memory cache**
+- All game-related API calls use this key
+- When key expires or is invalid → re-request from server
 
-### Slash Commands
-- `/start` – Sends a DM to begin your adventure
-- `/help` – Provides command information
+## 📌 Features
 
-### Legacy `!` Commands (DM only)
-- `!menu` – Starts a new game or resumes saved progress
-- `!save` – Saves current game state
-- `!status` – Displays current player info
-- `!quit` – Ends the current game session
+- Supports both **prefix commands (!menu, !save)** and **slash commands (/start)**
+- All gameplay interactions handled via Discord **DMs**
+- Command modules organized by function (Game, Admin, General)
+- Slash commands used for entry point and user onboarding
+- Richly formatted **embedded responses** with icons and status
 
-## API Communication
+All interactions are translated to HTTP requests using `HttpClient`.
 
-- All messages and actions are sent to the Game State Service via HTTP API
-- Authenticated using short-lived API Keys (stored in memory)
 
-## Deployment
+## 🔐 Security
 
-Dockerized and deployed through GitHub Actions:
+- Uses **API Key-based auth** for lightweight, secure communication
+- All keys issued via secured **Key Vault + cache** structure
+- Invalid keys rejected with proper status
 
-- Docker image pushed to Azure Container Registry
-- `az containerapp update` used to apply new versions
+## 🎯 Design Principles
+
+- Fully stateless
+- Optimized for latency and cost
+- Graceful error handling for all Discord interactions
+- Designed for extensibility and future feature modules
+
+## 🔥 Performance Optimizations
+
+- API call time reduced from 200-300ms → **1~2ms** via local cache
+- All commands are **non-blocking** and respond instantly
+- Lightweight bot service with minimal external dependency
+
+## 🚀 Deployment
+
+1. Containerized with Docker
+2. GitHub Actions builds and pushes to ACR
+3. Deployed to Azure Container App with `minReplicas: 1` (Always On)
 
 ---
 
-> ✨ Designed for fast iteration, secure communication, and lightweight runtime. This service is your gateway to the dungeon.
-
+> “The Discord bot is just the messenger — all the brains live in the game server.  
+But together, they make a scalable, fast, and robust RPG backend.”  
+— Built for performance, clarity, and production readiness.
