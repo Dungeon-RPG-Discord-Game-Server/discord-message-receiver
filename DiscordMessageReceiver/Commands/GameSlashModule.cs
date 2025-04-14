@@ -10,7 +10,7 @@ public class GameSlashModule : InteractionModuleBase<SocketInteractionContext>
         await DeferAsync(ephemeral: true);
 
         var dmChannel = await Context.User.CreateDMChannelAsync();
-        await dmChannel.SendMessageAsync("⚔️ Your journey begins! Type !start to enter the world of adventure! 🌍");
+        await dmChannel.SendMessageAsync("⚔️ Your journey begins! Type !menu to enter the world of adventure! 🌍");
 
         await FollowupAsync("💌 Check your DMs! Your journey begins there.");
     }
