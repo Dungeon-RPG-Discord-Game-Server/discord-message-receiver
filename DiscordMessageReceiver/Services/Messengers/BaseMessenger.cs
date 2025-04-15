@@ -92,7 +92,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public async Task<string> SaveGameAsync(ulong userId)
         {
-            var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"saveload/{userId}/save");
+            var response = await _apiWrapper.PutAsync(_gameServiceBaseUrl + $"saveload/{userId}/save");
             if (response == null)
             {
                 await SendMessageAsync(userId, null);
@@ -187,7 +187,7 @@ namespace DiscordMessageReceiver.Services.Messengers{
 
         public async Task EnterDungeonAsync(ulong userId)
         {
-            var response = await _apiWrapper.GetAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
+            var response = await _apiWrapper.PostAsync(_gameServiceBaseUrl + $"game/{userId}/map/enter");
             if (response == null)
             {
                 await SendMessageAsync(userId, null);

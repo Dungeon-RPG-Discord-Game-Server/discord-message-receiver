@@ -106,6 +106,31 @@ namespace DiscordMessageReceiver.Services
             }
         }
 
+
+        public async Task<string?> PutAsync(string url)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Put, url);
+                request.Headers.Add("X-API-KEY", await _apiKeyManager.GetValidApiKeyAsync());
+
+                var response = await _httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseText = await response.Content.ReadAsStringAsync();
+                    return responseText;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error in PostAsync: {ex.Message}");
+            }
+        }
+
         public async Task<string?> PutAsync<T>(string url, T payload)
         {
             try
