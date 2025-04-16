@@ -5,7 +5,7 @@ This service handles Discord messages and buttons, translates them into HTTP req
 
 Built with **.NET 8** and **Discord.NET**, this service is containerized and deployed via **Azure Container Apps**, with full observability and performance optimizations.
 
-## ⚙Technologies Used
+## Technologies Used
 
 - **.NET 8** – Discord bot and HTTP client
 - **Discord.NET** – Handles commands, buttons, and DM messages
